@@ -1,5 +1,9 @@
 # cliapp/core.py
 
-def hello_world(name: str) -> str:
-    """Returns a greeting for the given name."""
-    return f"Hello, {name}!"
+def run_app(config):
+    """Run the application with the given configuration."""
+    if config.get('verbose'):
+        print(f"Running in verbose mode. Configuration: {config}")
+
+    # Example functionality based on the configuration
+    print(f"Greeting: Hello, {config['name']}!")
