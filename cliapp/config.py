@@ -55,11 +55,13 @@ def merge_configs(defaults, config_file, config_cli):
     # Override defaults with values from config.json
     config.update(config_file)
 
-    # Override with command-line arguments (if provided)
+    # If CLI arguments override verbose, apply them (note: both --verbose and --no-verbose set 'verbose')
+    if config_cli.verbose is not None:
+        config['verbose'] = config_cli.verbose
+
+    # Override other command-line arguments (if provided)
     if config_cli.name:
         config['name'] = config_cli.name
-    if config_cli.verbose:
-        config['verbose'] = config_cli.verbose
     if config_cli.timeout:
         config['timeout'] = config_cli.timeout
 
