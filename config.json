@@ -1,4 +1,5 @@
 {
     "name": "Ivan",
-    "verbose": false
+    "verbose": false,
+    "timeout":13
 }
