@@ -1,4 +1,5 @@
 import json
+from jsonschema import validate, ValidationError
 import os
 
 # Step 1: Define default values (hardcoded in the module)
@@ -8,18 +9,42 @@ DEFAULT_CONFIG = {
     'timeout': 30
 }
 
+# Define the JSON schema for the configuration
+CONFIG_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "name": {"type": "string"},
+        "verbose": {"type": "boolean"},
+        "timeout": {"type": "integer", "minimum": 1, "maximum": 600}
+    },
+    "required": ["name"],
+    "additionalProperties": False  # No additional properties are allowed
+}
+
 def load_config(file_path='config.json'):
     """Load the configuration from a JSON file, handle errors if the file is missing or invalid."""
     if not os.path.exists(file_path):
-        # If config.json is missing, return an empty dictionary
         print(f"Configuration file {file_path} not found, using default values.")
         return {}
 
     try:
         with open(file_path, 'r') as file:
-            return json.load(file)
+            config = json.load(file)
+
+        # Step 2: Validate the loaded config against the schema
+        validate(instance=config, schema=CONFIG_SCHEMA)
+        return config
+
+    except FileNotFoundError:
+        print(f"Configuration file {file_path} not found, using default values.")
+        return {}
+
     except json.JSONDecodeError as e:
         raise ValueError(f"Invalid JSON format in {file_path}: {e}")
+
+    except ValidationError as e:
+        raise ValueError(f"Configuration validation error in {file_path}: {e.message}")
+
     except Exception as e:
         raise RuntimeError(f"Failed to load configuration from {file_path}: {e}")
 

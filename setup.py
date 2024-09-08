@@ -10,7 +10,9 @@ setup(
     author_email='i_cenov@botevgrad.com',
     url='https://github.com/jwalkerbg/cliapp',  # Project's GitHub or website
     packages=find_packages(),
-    install_requires=[],
+    install_requires=[
+        'jsonschema'  # Add your dependencies here
+    ],
     entry_points={
         'console_scripts': [
             'cliapp=cliapp.cli:main',
