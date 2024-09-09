@@ -1,3 +1,5 @@
 /cliapp/__pycache__
 /tests/__pycache__
 /cliapp.egg-info
+venv
+build
