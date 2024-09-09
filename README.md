@@ -39,6 +39,7 @@ By default, the application looks for a `config.json` file in the current direct
         "timeout": 30
     }
 }
+```
 
 ### 2. Command-Line Arguments
 
