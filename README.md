@@ -100,6 +100,7 @@ Example:
 
 Output:
 
+```
 MQTT Configuration:
   Host: mqtt.myserver.com
   Port: 1883
@@ -111,7 +112,8 @@ Device Configuration:
   Port: /dev/ttyUSB2
   Timeout: 30 seconds
 
-## Application started with the above configuration...
+Application started with the above configuration...
+```
 
 ### Requirements
 
