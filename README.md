@@ -6,6 +6,8 @@ This application is a flexible CLI and Python module that allows users to config
 
 The application is designed to connect to an MQTT broker and interact with a device under test (DUT). The settings for both MQTT and the device can be overridden via the CLI, allowing easy configuration for different environments.
 
+Note: MQTT configuration is included in this version, however real MQTT communication is still missing.
+
 ## Features
 
 - **MQTT Configuration**: Host, port, username, and password.
