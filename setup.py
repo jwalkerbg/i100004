@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='cliapp',
-    version='0.1.0',
+    version='0.2.0',
     description='A sample Python project with CLI and importable module',
     author='Ivan Cenov',
     author_email='i_cenov@botevgrad.com',
