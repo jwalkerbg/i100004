@@ -4,21 +4,47 @@ import os
 
 # Step 1: Define default values (hardcoded in the module)
 DEFAULT_CONFIG = {
-    'name': 'DefaultUser',
-    'verbose': False,
-    'timeout': 30
+    'mqtt': {
+        'host': 'localhost',
+        'port': 1883,
+        'username': 'guest',
+        'password': 'guest'
+    },
+    'device': {
+        'name': 'UnknownDevice',
+        'protocol': 'ttyUSB0',
+        'timeout': 30
+    },
+    'verbose': False
 }
 
 # Define the JSON schema for the configuration
 CONFIG_SCHEMA = {
     "type": "object",
     "properties": {
-        "name": {"type": "string"},
-        "verbose": {"type": "boolean"},
-        "timeout": {"type": "integer", "minimum": 1, "maximum": 600}
+        "mqtt": {
+            "type": "object",
+            "properties": {
+                "host": {"type": "string"},
+                "port": {"type": "integer", "minimum": 1, "maximum": 65535},
+                "username": {"type": "string"},
+                "password": {"type": "string"}
+            },
+            "required": ["host", "port"]
+        },
+        "device": {
+            "type": "object",
+            "properties": {
+                "name": {"type": "string"},
+                "port": {"type": "string"},
+                "timeout": {"type": "integer", "minimum": 1, "maximum": 600}
+            },
+            "required": ["name"]
+        },
+        "verbose": {"type": "boolean"}
     },
-    "required": ["name"],
-    "additionalProperties": False  # No additional properties are allowed
+    "required": ["mqtt", "device"],
+    "additionalProperties": False
 }
 
 def load_config(file_path='config.json'):
@@ -52,17 +78,29 @@ def merge_configs(defaults, config_file, config_cli):
     """Merge default config, file config, and CLI config with precedence to CLI > file > default."""
     config = defaults.copy()  # Start with defaults
 
-    # Override defaults with values from config.json
+    # Merge config.json into defaults
     config.update(config_file)
 
-    # If CLI arguments override verbose, apply them (note: both --verbose and --no-verbose set 'verbose')
+    # Handle MQTT CLI overrides
+    if config_cli.mqtt_host:
+        config['mqtt']['host'] = config_cli.mqtt_host
+    if config_cli.mqtt_port:
+        config['mqtt']['port'] = config_cli.mqtt_port
+    if config_cli.mqtt_username:
+        config['mqtt']['username'] = config_cli.mqtt_username
+    if config_cli.mqtt_password:
+        config['mqtt']['password'] = config_cli.mqtt_password
+
+    # Handle Device CLI overrides
+    if config_cli.device_name:
+        config['device']['name'] = config_cli.device_name
+    if config_cli.device_port:
+        config['device']['port'] = config_cli.device_port
+    if config_cli.device_timeout:
+        config['device']['timeout'] = config_cli.device_timeout
+
+    # Handle general options
     if config_cli.verbose is not None:
         config['verbose'] = config_cli.verbose
-
-    # Override other command-line arguments (if provided)
-    if config_cli.name:
-        config['name'] = config_cli.name
-    if config_cli.timeout:
-        config['timeout'] = config_cli.timeout
 
     return config
