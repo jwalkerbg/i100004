@@ -1,0 +1,14 @@
+{
+    "mqtt": {
+        "host": "broker.emqx.io",
+        "port": 1883,
+        "username": "iv_cenov",
+        "password": "azsxdcfv"
+    },
+    "device": {
+        "name": "DeviceName",
+        "port": "ttyUSB0",
+        "timeout": 30
+    },
+    "verbose": false
+}
