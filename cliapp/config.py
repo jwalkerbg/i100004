@@ -1,3 +1,4 @@
+from typing import Dict, Any  # Import only the necessary types
 import json
 from jsonschema import validate, ValidationError
 import os
@@ -8,7 +9,9 @@ DEFAULT_CONFIG = {
         'host': 'localhost',
         'port': 1883,
         'username': 'guest',
-        'password': 'guest'
+        'password': 'guest',
+        'client_id': 'mqttx_93919c20',
+        'mac_address': '11:22:33:44:55:66'
     },
     'device': {
         'name': 'UnknownDevice',
@@ -28,7 +31,9 @@ CONFIG_SCHEMA = {
                 "host": {"type": "string"},
                 "port": {"type": "integer", "minimum": 1, "maximum": 65535},
                 "username": {"type": "string"},
-                "password": {"type": "string"}
+                "password": {"type": "string"},
+                "client_id": {"type": "string"},
+                "mac_address": {"type": "string"}
             },
             "required": ["host", "port"]
         },
@@ -79,7 +84,7 @@ def merge_configs(defaults, config_file, config_cli):
     config = defaults.copy()  # Start with defaults
 
     # Merge config.json into defaults
-    config.update(config_file)
+    deep_update(config,config_file)
 
     # Handle MQTT CLI overrides
     if config_cli.mqtt_host:
@@ -90,6 +95,10 @@ def merge_configs(defaults, config_file, config_cli):
         config['mqtt']['username'] = config_cli.mqtt_username
     if config_cli.mqtt_password:
         config['mqtt']['password'] = config_cli.mqtt_password
+    if config_cli.mqtt_client_id:
+        config['mqtt']['client_id'] = config_cli.mqtt_client_id
+    if config_cli.mqtt_mac_address:
+        config['mqtt']['mac_address'] = config_cli.mqtt_mac_address
 
     # Handle Device CLI overrides
     if config_cli.device_name:
@@ -104,3 +113,24 @@ def merge_configs(defaults, config_file, config_cli):
         config['verbose'] = config_cli.verbose
 
     return config
+
+def deep_update(config: Dict[str, Any], config_file: Dict[str, Any]) -> None:
+    """
+    Recursively updates a dictionary (`config`) with the contents of another dictionary (`config_file`).
+    It performs a deep merge, meaning that if a key contains a nested dictionary in both `config`
+    and `config_file`, the nested dictionaries are merged instead of replaced.
+
+    Parameters:
+    - config (Dict[str, Any]): The original dictionary to be updated.
+    - config_file (Dict[str, Any]): The dictionary containing updated values.
+
+    Returns:
+    - None: The update is done in place, so the `config` dictionary is modified directly.
+    """
+    for key, value in config_file.items():
+        if isinstance(value, dict) and key in config and isinstance(config[key], dict):
+            # If both values are dictionaries, recurse to merge deeply
+            deep_update(config[key], value)
+        else:
+            # Otherwise, update the key with the new value from config_file
+            config[key] = value

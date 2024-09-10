@@ -15,6 +15,8 @@ def run_app(config):
     print(f"  Port: {mqtt_config['port']}")
     print(f"  Username: {mqtt_config.get('username', 'N/A')}")
     print(f"  Password: {mqtt_config.get('password', 'N/A')}")
+    print(f"  Client ID: {mqtt_config.get('client_id', 'N/A')}")
+    print(f"  MAC address: {mqtt_config.get('mac_address', 'N/A')}")
 
     # Device configuration
     device_config = config['device']

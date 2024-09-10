@@ -3,7 +3,9 @@
         "host": "broker.emqx.io",
         "port": 1883,
         "username": "iv_cenov",
-        "password": "azsxdcfv"
+        "password": "azsxdcfv",
+        "client_id": "client_394578",
+        "mac_address": "12:34:56:78:90:ab"
     },
     "device": {
         "name": "DeviceName",

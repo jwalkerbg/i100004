@@ -12,6 +12,8 @@ def parse_args():
     parser.add_argument('--mqtt-port', type=int, help='MQTT port')
     parser.add_argument('--mqtt-username', type=str, help='MQTT username')
     parser.add_argument('--mqtt-password', type=str, help='MQTT password')
+    parser.add_argument('--mqtt-client-id', type=str, help="MQTT Client ID, used by the broker")
+    parser.add_argument("--mqtt-mac-address", type=str, help="MAC address to use in MQTT topics. This is the MAC address of the device to work with.")
 
     # Device options
     parser.add_argument('--device-name', type=str, help='Name of the device under test')
