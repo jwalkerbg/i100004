@@ -11,7 +11,8 @@ DEFAULT_CONFIG = {
         'username': 'guest',
         'password': 'guest',
         'client_id': 'mqttx_93919c20',
-        'mac_address': '11:22:33:44:55:66'
+        'mac_address': '11:22:33:44:55:66',
+        "timeout": 15.0
     },
     'device': {
         'name': 'UnknownDevice',
@@ -33,7 +34,8 @@ CONFIG_SCHEMA = {
                 "username": {"type": "string"},
                 "password": {"type": "string"},
                 "client_id": {"type": "string"},
-                "mac_address": {"type": "string"}
+                "mac_address": {"type": "string"},
+                "timeout": {"type": "number"}
             },
             "required": ["host", "port"]
         },
@@ -99,6 +101,8 @@ def merge_configs(defaults, config_file, config_cli):
         config['mqtt']['client_id'] = config_cli.mqtt_client_id
     if config_cli.mqtt_mac_address:
         config['mqtt']['mac_address'] = config_cli.mqtt_mac_address
+    if config_cli.mqtt_timeout:
+        config['mqtt']['timeout'] = config_cli.mqtt_timeout
 
     # Handle Device CLI overrides
     if config_cli.device_name:
