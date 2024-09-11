@@ -191,6 +191,84 @@ class MQTTHandler:
             # Connection failed with a return code (rc != 0)
             logger.info(f"Failed to connect, return code {rc}")
 
+    def disconnect_and_exit(self) -> None:
+        """
+        Cleanly disconnect from the MQTT broker and exit the publishing and receiving threads.
+
+        Behavior:
+        - Signals the publishing and receiving threads to stop by using `self.exit_threads()`.
+        - Attempts to disconnect from the MQTT broker, triggering the `on_disconnect()` callback if the disconnection is successful.
+        - Handles any exceptions that may occur during the disconnection process to ensure the program logs an error instead of crashing.
+
+        Steps:
+        1. Calls `exit_threads()` to stop the background threads responsible for publishing and receiving MQTT messages.
+        2. Calls `self.client.disconnect()` to initiate a clean disconnection from the MQTT broker.
+        This triggers the `on_disconnect()` callback once the client is successfully disconnected.
+
+        Logging Behavior:
+        - Logs the start of the shutdown process and confirms disconnection and thread termination.
+        - If an error occurs during disconnection, it logs the error but does not stop the program from continuing the shutdown process.
+
+        Returns:
+        - None: This function ensures a clean shutdown of the MQTT client and associated threads without returning a value.
+        """
+        logger.info("Initiating clean shutdown...")
+
+        # Step 1: Exit the publishing and receiving threads
+        self.exit_threads()  # Signal the threads to stop and wait for them to finish
+
+        # Step 2: Disconnect from the MQTT broker
+        try:
+            self.client.disconnect()  # This will trigger the on_disconnect() callback
+            logger.info("Disconnected from MQTT broker.")
+        except Exception as e:
+            # Log any errors that occur during the disconnection process
+            logger.error(f"Error while disconnecting from the broker: {e}")
+
+        logger.info("Clean shutdown complete.")
+
+    def on_disconnect(self, client: mqtt.Client, userdata: object, rc: int) -> None:
+        """
+        Callback triggered when the client disconnects from the MQTT broker.
+
+        Behavior:
+        - If the disconnection is intentional (indicated by `rc == 0`), logs that the client successfully disconnected from the broker.
+        - If the disconnection is unintentional (`rc != 0`), logs a warning and attempts to reconnect to the broker.
+        - If the reconnection attempt fails, logs the error.
+
+        Parameters:
+        - client (mqtt.Client): The MQTT client instance that was disconnected.
+        - userdata (object): User-defined data passed to the callback (unused here).
+        - rc (int): The reason code for the disconnection.
+        - A value of `0` indicates a successful, intentional disconnect (e.g., through `client.disconnect()`).
+        - A non-zero value indicates an unexpected disconnect (e.g., due to network issues or broker failure).
+
+        Reconnection Logic:
+        - If an unintentional disconnection occurs (`rc != 0`), the function attempts to automatically reconnect to the broker using `client.reconnect()`.
+        - If the reconnection attempt fails, the exception is caught, and an error is logged.
+
+        Returns:
+        - None: This function does not return a value and simply handles the disconnection event and, if necessary, reconnection.
+
+        Logging Behavior:
+        - Logs successful disconnections (when `rc == 0`).
+        - Logs warnings and errors when unexpected disconnections occur or when reconnection attempts fail.
+        """
+        # If the return code (rc) is 0, the disconnection was intentional
+        if rc == 0:
+            logger.info("Disconnected from MQTT broker successfully.")
+        else:
+            # If rc != 0, the disconnection was unintentional
+            logger.warning(f"Unexpected disconnection from MQTT broker. Reason code: {rc}")
+
+            # Attempt to reconnect to the broker
+            try:
+                client.reconnect()
+                logger.info("Reconnected to MQTT broker.")
+            except Exception as e:
+                # Log the failure to reconnect
+                logger.error(f"Failed to reconnect: {e}")
+
     def subscribe(self, topic: str) -> bool:
         """
         Subscribes to the given MQTT topic and waits for acknowledgment from the broker.
