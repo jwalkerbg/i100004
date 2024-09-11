@@ -137,17 +137,19 @@ class MQTTHandler:
     def receive_mqtt_message(self,client,q):
         logger.info(f"MQTT entered receiving thread")
         while True:
-            topic, payload = self.queue_rec.get()  # Wait for a message to be available
+            message = self.queue_rec.get()  # Wait for a message to be available
+            topic, payload = message
             if topic is None:
                 break  # Exit the thread if a None message is received
 
             # handle handle_device_message
-            handle_device_message(topic, payload)
+            handle_device_message(message)
         logger.info(f"MQTT exited receiving thread")
 
     def define_message_handler(self, handler):
         """Define a custom message handler."""
         self.client.on_message = handler
 
-def handle_device_message(topic, payload):
+def handle_device_message(message):
+    topic, payload = message
     logger.info(f"handle_device_message: -t '{topic}' -m '{payload}'")
