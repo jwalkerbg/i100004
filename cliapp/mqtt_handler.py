@@ -1,3 +1,4 @@
+import time
 import json
 import threading
 import queue
@@ -21,6 +22,7 @@ class MQTTHandler:
 
         self.pending_subscriptions = { }
         self.subscription_estabilished = threading.Event()
+        self.subscriptions_terminated = threading.Event()
 
         # queue for messages to be published
         self.queue_pub = queue.Queue()
@@ -214,10 +216,18 @@ class MQTTHandler:
         """
         logger.info("MQTT initiating clean shutdown...")
 
-        # Step 1: Exit the publishing and receiving threads
+        # Step 1: Unsubscribe all topics
+        self.client.unsubscribe("#")
+        waitres = self.subscriptions_terminated.wait(self.config['mqtt']['timeout'])
+        if waitres:
+            logger.info(f"MQTT unsubscribed successfully")
+        else:
+            logger.error(f"MQTT unsubscribing did finished in time")
+
+        # Step 2: Exit the publishing and receiving threads
         self.exit_threads()  # Signal the threads to stop and wait for them to finish
 
-        # Step 2: Disconnect from the MQTT broker
+        # Step 3: Disconnect from the MQTT broker
         try:
             self.client.disconnect()  # This will trigger the on_disconnect() callback
             logger.info("MQTT disconnected from MQTT broker.")
@@ -356,32 +366,35 @@ class MQTTHandler:
         else:
             logger.info(f"MQTT subscription with mid '{mid}' acknowledged but no topic found in pending subscriptions")
 
-    def on_unsubscribe(self, userdata: object, mid: int, rc: int, properties: dict = None) -> None:
+    def on_unsubscribe(self, client: mqtt.Client, userdata: object, mid: int, reason_code_list: list, properties: dict = None) -> None:
         """
-        MQTT callback function triggered when the broker acknowledges an unsubscribe request.
+        Callback triggered when the broker acknowledges an unsubscribe request.
 
         Behavior:
-        - Logs a message confirming that the broker has acknowledged the client's request to unsubscribe from a topic.
-        - The message ID (`mid`) corresponds to the unsubscribe request and can be used for tracking.
-        - The `rc` (return code) indicates the result of the unsubscribe operation.
+        - Sets the `self.subscriptions_terminated` event to signal that the unsubscribe operation has been acknowledged.
+        - Logs that the broker has acknowledged the unsubscribe request for the message ID (`mid`).
 
         Parameters:
-        - userdata (object): User-defined data passed to the callback (not used in this implementation).
-        - mid (int): The message ID of the unsubscribe request. This ID can be used to track the request.
-        - rc (int): The result code returned by the broker, indicating the success or failure of the unsubscribe request. A value of `0` typically indicates success.
-        - properties (dict, optional): MQTT 5.0 properties associated with the unsubscribe acknowledgment (unused in this implementation).
+        - client (mqtt.Client): The MQTT client instance that is handling the unsubscribe request.
+        - userdata (object): User-defined data passed to the callback (unused here).
+        - mid (int): The message ID of the unsubscribe request. This ID corresponds to the request made by the client when it called `unsubscribe()`.
+        - reason_code_list (list): A list of reason codes for each topic in the unsubscribe request.
+        - A reason code of `0` typically indicates success for each topic.
+        - properties (dict, optional): MQTT 5.0 properties associated with the unsubscribe acknowledgment (unused here).
 
-        Returns:
-        - None: This function does not return a value. It simply logs the acknowledgment.
-
-        Usage:
-        - This method is called automatically by the MQTT client when the broker acknowledges an unsubscribe request.
-        - The `mid` is used to identify which unsubscribe request was acknowledged, and this can be useful when dealing with multiple subscriptions.
+        Event Handling:
+        - The `self.subscriptions_terminated` event is set once the unsubscribe request is acknowledged by the broker. This event can be used to block further operations until the unsubscribe operation is confirmed.
 
         Logging Behavior:
         - Logs the message ID (`mid`) of the acknowledged unsubscribe request for tracking purposes.
+
+        Returns:
+        - None: This function is a callback and does not return a value. It simply handles the unsubscribe acknowledgment and logs relevant information.
         """
-        # Log the message that the unsubscribe request was acknowledged by the broker
+        # Signal that the unsubscribe request has been acknowledged by the broker
+        self.subscriptions_terminated.set()
+
+        # Log the acknowledgment of the unsubscribe request for the given message ID (mid)
         logger.info(f"MQTT unsubscribe acknowledgment for mid '{mid}' received")
 
     def on_publish(self, client: mqtt.Client, userdata: object, mid: int, reason_code: int, properties: dict = None) -> None:
