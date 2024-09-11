@@ -217,6 +217,7 @@ class MQTTHandler:
         logger.info("MQTT initiating clean shutdown...")
 
         # Step 1: Unsubscribe all topics
+        self.subscriptions_terminated.clear()
         self.client.unsubscribe("#")
         waitres = self.subscriptions_terminated.wait(self.config['mqtt']['timeout'])
         if waitres:
