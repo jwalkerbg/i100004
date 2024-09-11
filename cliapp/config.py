@@ -2,6 +2,7 @@ from typing import Dict, Any  # Import only the necessary types
 import json
 from jsonschema import validate, ValidationError
 import os
+from cliapp.logger_module import logger, string_handler
 
 # Step 1: Define default values (hardcoded in the module)
 DEFAULT_CONFIG = {
@@ -57,7 +58,7 @@ CONFIG_SCHEMA = {
 def load_config(file_path='config.json'):
     """Load the configuration from a JSON file, handle errors if the file is missing or invalid."""
     if not os.path.exists(file_path):
-        print(f"Configuration file {file_path} not found, using default values.")
+        logger.warning(f"Configuration file {file_path} not found, using default values.")
         return {}
 
     try:
@@ -69,7 +70,7 @@ def load_config(file_path='config.json'):
         return config
 
     except FileNotFoundError:
-        print(f"Configuration file {file_path} not found, using default values.")
+        logger.warning(f"Configuration file {file_path} not found, using default values.")
         return {}
 
     except json.JSONDecodeError as e:

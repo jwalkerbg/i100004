@@ -2,6 +2,7 @@ import argparse
 
 from cliapp.core import run_app
 from cliapp.config import load_config, merge_configs, DEFAULT_CONFIG
+from cliapp.logger_module import logger, string_handler
 
 def parse_args():
     """Parse command-line arguments, including nested options for mqtt and device."""
@@ -30,6 +31,10 @@ def parse_args():
 
 def main():
     """Main entry point of the CLI."""
+
+    # Step 0: Log the beginning
+    logger.info("cliapp beginning")
+
     # Step 1: Load default values from the module
     defaults = DEFAULT_CONFIG
 
@@ -44,6 +49,9 @@ def main():
 
     # Step 5: Run the application using the final configuration
     run_app(final_config)
+
+    # Step 6: Final message
+    logger.info("cliapp end")
 
 if __name__ == "__main__":
     main()
