@@ -30,11 +30,22 @@ class MQTTHandler:
         self.client.on_publish = self.on_publish
         self.client.on_message = self.on_message
 
+        self.mqtt_publish_thread = None
+        self.mqtt_receive_thread = None
+
         self.mqtt_publish_thread = threading.Thread(target=self.publish_mqtt_message, args=((self,self.queue_pub)))
         self.mqtt_publish_thread.start()
 
         self.mqtt_receive_thread = threading.Thread(target=self.receive_mqtt_message, args=((self, self.queue_rec)))
         self.mqtt_receive_thread.start()
+
+    def exit_threads(self):
+        if self.mqtt_publish_thread:
+            self.queue_pub.put((None,None))
+            self.mqtt_publish_thread.join()
+        if self.mqtt_receive_thread:
+            self.queue_rec.put((None,None))
+            self.mqtt_receive_thread.join()
 
     def connect(self):
         """Connect to the MQTT broker."""
@@ -51,12 +62,12 @@ class MQTTHandler:
             return False
 
         waitres = self.connection_established.wait(self.config['mqtt']['timeout'])
-        if not waitres:
-            logger.info("No MQTT connection was estabilished in time")
-            return False
-        else:
+        if waitres:
             logger.info("MQTT Connection estabilished")
             return True
+        else:
+            logger.warning("No MQTT connection was estabilished in time")
+            return False
 
     def on_connect(self, client, userdata, flags, rc, properties):
         """Callback when the client connects to the broker."""
@@ -70,28 +81,31 @@ class MQTTHandler:
         self.subscription_estabilished.clear()
         result, mid = self.client.subscribe(topic=topic)
         self.pending_subscriptions[mid] = topic
-        logger.info(f"Subscribing to topic: {topic}")
+        logger.info(f"MQTT subscribing to topic: {topic}")
+
+        waitres = self.subscription_estabilished.wait(self.config['mqtt']['timeout'])
+        if waitres:
+            logger.info(f"MQTT subscription estabilished")
+            return True
+        else:
+            logger.warning(f"No MQTT subscription estabilished in time")
+            return False
 
     def on_subscribe(self, client, userdata, mid, rc, properties):
         self.subscription_estabilished.set()
         topic = self.pending_subscriptions[mid]
         if topic:
-            logger.info(f"MQTT Subscription to '{topic}' acknowledged")
+            logger.info(f"MQTT subscription to '{topic}' acknowledged")
         else:
-            logger.info(f"MQTT Subscription with mid '{mid}' acknowledged but no topic found in pending subscriptions")
-
-        logger.info(f"userdata: {userdata}")
-        logger.info(f"mid: {mid}")
-        logger.info(f"rc: {rc}")
-        logger.info(f"properties: {properties}")
+            logger.info(f"MQTT subscription with mid '{mid}' acknowledged but no topic found in pending subscriptions")
 
     def on_unsubscribe(self,userdata,mid,rc,properties):
         topic = self.pending_subscriptions[mid]
         if topic:
-            logger.info(f"Unsibscribed from {topic}")
+            logger.info(f"MQTT unsibscribed from {topic}")
             self.pending_subscriptions[mid] = None
         else:
-            logger.info(f"Unsubscribed from {topic} that was not in pending subscriptions")
+            logger.info(f"MQTT unsubscribed from {topic} that was not in pending subscriptions")
 
     def on_publish(self, client, userdata, mid, reason_code, properties):
         logger.info(f"MQTT message published")
@@ -99,42 +113,41 @@ class MQTTHandler:
     def on_message(self, client, userdata, msg):
         """Callback when a message is received."""
         payload = msg.payload.decode()
-        logger.info(f"MQTT Receive: topic: {msg.topic}, payload: {msg.payload.decode()}")
+        logger.info(f"MQTT receive: -t '{msg.topic}' -m '{msg.payload.decode()}'")
         self.queue_rec.put((msg.topic, payload))
 
     def publish_message(self, topic, message):
         """Publish a message to the MQTT topic."""
-        self.client.publish(topic, message)
-        logger.info(f"Published message to {topic}: {message}")
+        #self.client.publish(topic, message)
+        self.queue_pub.put((topic, message))
+        logger.info(f"MQTT publish: -t '{topic}' -m '{message}'")
 
     def publish_mqtt_message(self,client,q):
-        #global mqtt_verbose_log
+        logger.info(f"MQTT entered publishing thread")
         while True:
             message = self.queue_pub.get()  # Wait for a message to be available
             if message == (None, None):
                 break  # Exit the thread if a None message is received
             topic, payload = message
-            #logger.info(f"MQTT Publish: topic: {topic}, payload: {'<long payload>' if not self.config['verbose'] and len(payload) > DEFAULT_MQTT_LONG_PAYLOAD else payload}")
-            logger.info(f"MQTT Publish: topic: {topic}, payload: {'<long payload>' if not self.config['verbose'] and len(payload) > 20 else payload}")
+            #logger.info(f"MQTT publish: -t '{topic}' -m '{'<long payload>' if not self.config['verbose'] and len(payload) > 20 else payload}'")
             result = self.client.publish(topic, payload,qos=0)
             result.wait_for_publish()
+        logger.info(f"MQTT exited publishing thread")
 
     def receive_mqtt_message(self,client,q):
+        logger.info(f"MQTT entered receiving thread")
         while True:
             topic, payload = self.queue_rec.get()  # Wait for a message to be available
             if topic is None:
                 break  # Exit the thread if a None message is received
 
-            # handle received message here (command or data rceived). Still not defined format.
-            # The message shall have following format
-            # odoo/<work_order>/<serial> : {"uid": "<unique id>", <Configuration, Firmware>}
-            # here unique id is the same that sent by get_device message, Configuration is a JSON object
-            # handle_device_message() is provided by the specific test bench
+            # handle handle_device_message
             handle_device_message(topic, payload)
+        logger.info(f"MQTT exited receiving thread")
 
     def define_message_handler(self, handler):
         """Define a custom message handler."""
         self.client.on_message = handler
 
 def handle_device_message(topic, payload):
-    logger.info(f"handle_device_message: {topic}, {payload}")
+    logger.info(f"handle_device_message: -t '{topic}' -m '{payload}'")

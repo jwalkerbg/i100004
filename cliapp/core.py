@@ -9,12 +9,57 @@ def run_app(config):
 
     # Print verbose mode status
     if config.get('verbose'):
-        logger.info("Running in verbose mode.")
-        logger.info(f"Final Configuration: {config}")
+        log_configuration(config)
+
+    #mqtt_config = config['mqtt']
+    #device_config = config['device']
+
+    try:
+        mqtt_handler = MQTTHandler(config)
+    except Exception as e:
+        logger.error(f"Cannot create MQTTHandler object: {e}")
+        mqtt_handler.exit_threads()
+        return
+
+    try:
+        res = mqtt_handler.connect()
+        if not res:
+            mqtt_handler.exit_threads()
+            return
+    except Exception as e:
+        logger.error(f"Cannot connect to the MQTT broker: {e}")
+        mqtt_handler.exit_threads()
+        return
+
+    subscribe_topic = "@/1234567890A1/RSP/ASCIIHEX"
+    try:
+        res = mqtt_handler.subscribe(subscribe_topic)
+        if not res:
+            mqtt_handler.exit_threads()
+            return
+    except Exception as e:
+        logger.error(f"Cannot subscribe to the MQTT broker: {e}")
+        mqtt_handler.exit_threads()
+        return
+
+    payl = '{"cid":129,"client":"1234567890A1","command":"SR","data":""}'
+    try:
+        while True:
+            # Simulate doing some work (replace this with actual logic)
+            mqtt_handler.publish_message(f"@/{config['mqtt']['mac_address']}/CMD/ASCIIHEX",payl)
+            time.sleep(5)  # Sleep to avoid busy-waiting
+    except KeyboardInterrupt:
+        # Graceful exit on Ctrl-C
+        mqtt_handler.exit_threads()
+        logger.warning("Application stopped by user (Ctrl-C). Exiting...")
+
+def log_configuration(config):
+    logger.info("Running in verbose mode.")
+    logger.info(f"Final Configuration: {config}")
 
     # MQTT configuration
     mqtt_config = config['mqtt']
-    logger.info(f"\nMQTT Configuration:")
+    logger.info(f"MQTT Configuration:")
     logger.info(f"  Host: {mqtt_config['host']}")
     logger.info(f"  Port: {mqtt_config['port']}")
     logger.info(f"  Username: {mqtt_config.get('username', 'N/A')}")
@@ -25,37 +70,9 @@ def run_app(config):
 
     # Device configuration
     device_config = config['device']
-    logger.info(f"\nDevice Configuration:")
+    logger.info(f"Device Configuration:")
     logger.info(f"  Device Name: {device_config['name']}")
     logger.info(f"  Timeout: {device_config['timeout']} seconds")
     logger.info(f"  Port: {device_config['port']}")
 
-    # Example of using the configuration for application logic
-    # Here you would add the logic to connect to the MQTT server and communicate with the device
-    # For this example, we simply print the configuration.
-    logger.info("\nApplication started with the above configuration...")
-
-    mqtt_handler = MQTTHandler(config)
-
-    mqtt_handler.connect()
-    mqtt_handler.connection_established.wait(mqtt_config['timeout'])
-
-    subscribe_topic = "@/1234567890A1/RSP/ASCIIHEX"
-    mqtt_handler.subscribe(subscribe_topic)
-    mqtt_handler.subscription_estabilished.wait(mqtt_config['timeout'])
-
-    payl = '{"cid":129,"client":"1234567890A1","command":"SR","data":""}'
-    try:
-        while True:
-            # Simulate doing some work (replace this with actual logic)
-            mqtt_handler.publish_message(f"@/{config['mqtt']['mac_address']}/CMD/ASCIIHEX",payl)
-            time.sleep(5)  # Sleep to avoid busy-waiting
-    except KeyboardInterrupt:
-        # Graceful exit on Ctrl-C
-
-        mqtt_handler.queue_pub.put((None,None))
-        mqtt_handler.mqtt_publish_thread.join()
-        mqtt_handler.queue_rec.put((None,None))
-        mqtt_handler.mqtt_receive_thread.join()
-
-        logger.warning("Application stopped by user (Ctrl-C). Exiting...")
+    logger.info("Application started with the above configuration...")
