@@ -131,7 +131,7 @@ class MQTTHandler:
         """
         host = self.config['mqtt']['host']
         port = self.config['mqtt']['port']
-        logger.info(f"Connecting to MQTT broker at {host}:{port}...")
+        logger.info(f"MQTT connecting to MQTT broker at {host}:{port}...")
 
         try:
             # Clear the event to indicate that the connection is not established yet.
@@ -152,7 +152,7 @@ class MQTTHandler:
 
         if waitres:
             # Connection was successfully established within the timeout.
-            logger.info("MQTT Connection established")
+            logger.info("MQTT connection established")
             return True
         else:
             # Connection was not established within the timeout.
@@ -183,13 +183,13 @@ class MQTTHandler:
         """
         if rc == 0:
             # Connection was successful
-            logger.info("Connected to MQTT broker.")
+            logger.info("MQTT connected to MQTT broker.")
 
             # Set the event to signal the connect() method that the connection is established.
             self.connection_established.set()
         else:
             # Connection failed with a return code (rc != 0)
-            logger.info(f"Failed to connect, return code {rc}")
+            logger.info(f"MQTT failed to connect, return code {rc}")
 
     def disconnect_and_exit(self) -> None:
         """
@@ -212,7 +212,7 @@ class MQTTHandler:
         Returns:
         - None: This function ensures a clean shutdown of the MQTT client and associated threads without returning a value.
         """
-        logger.info("Initiating clean shutdown...")
+        logger.info("MQTT initiating clean shutdown...")
 
         # Step 1: Exit the publishing and receiving threads
         self.exit_threads()  # Signal the threads to stop and wait for them to finish
@@ -220,12 +220,12 @@ class MQTTHandler:
         # Step 2: Disconnect from the MQTT broker
         try:
             self.client.disconnect()  # This will trigger the on_disconnect() callback
-            logger.info("Disconnected from MQTT broker.")
+            logger.info("MQTT disconnected from MQTT broker.")
         except Exception as e:
             # Log any errors that occur during the disconnection process
-            logger.error(f"Error while disconnecting from the broker: {e}")
+            logger.error(f"MQTT error while disconnecting from the broker: {e}")
 
-        logger.info("Clean shutdown complete.")
+        logger.info("MQTT clean shutdown complete.")
 
     def on_disconnect(self, client: mqtt.Client, userdata: object, rc: int) -> None:
         """
