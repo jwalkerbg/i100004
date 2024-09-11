@@ -116,17 +116,16 @@ class MQTTHandler:
     def on_publish(self, client, userdata, mid, reason_code, properties):
         logger.info(f"MQTT message published")
 
-    def on_message(self, client, userdata, msg):
+    def on_message(self, client, userdata, message):
         """Callback when a message is received."""
-        payload = msg.payload.decode()
-        logger.info(f"MQTT receive: -t '{msg.topic}' -m '{msg.payload.decode()}'")
-        self.queue_rec.put((msg.topic, payload))
+        payload = message.payload.decode()
+        logger.info(f"MQTT receive: -t '{message.topic}' -m '{'<long payload>' if not self.config['verbose'] and len(payload) > self.config['mqtt'].get('long_payload', 0) else payload}'")
+        self.queue_rec.put((message.topic, payload))
 
-    def publish_message(self, topic, message):
+    def publish_message(self, topic, payload):
         """Publish a message to the MQTT topic."""
-        #self.client.publish(topic, message)
-        self.queue_pub.put((topic, message))
-        logger.info(f"MQTT publish: -t '{topic}' -m '{message}'")
+        self.queue_pub.put((topic, payload))
+        logger.info(f"MQTT publish: -t '{topic}' -m '{'<long payload>' if not self.config['verbose'] and len(payload) > self.config['mqtt'].get('long_payload', 0) else payload}'")
 
     def publish_mqtt_message(self,client,q):
         logger.info(f"MQTT entered publishing thread")
@@ -135,7 +134,6 @@ class MQTTHandler:
             if message == (None, None):
                 break  # Exit the thread if a None message is received
             topic, payload = message
-            #logger.info(f"MQTT publish: -t '{topic}' -m '{'<long payload>' if not self.config['verbose'] and len(payload) > 20 else payload}'")
             result = self.client.publish(topic, payload,qos=0)
             result.wait_for_publish()
         logger.info(f"MQTT exited publishing thread")
@@ -146,9 +144,8 @@ class MQTTHandler:
             message = self.queue_rec.get()  # Wait for a message to be available
             topic, payload = message
             if topic is None:
-                break  # Exit the thread if a None message is received
-
-            # handle handle_device_message
+                break  # Exit the thread if a None topic is received
+            # call message handler if any is given
             if self.message_handler:
                 self.message_handler(message)
 

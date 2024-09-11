@@ -6,7 +6,8 @@
         "password": "",
         "client_id": "client_394578",
         "mac_address": "F412FACEF2E8",
-        "timeout": 30.0
+        "timeout": 30.0,
+        "long_payload": 25
     },
     "device": {
         "name": "DeviceName",
