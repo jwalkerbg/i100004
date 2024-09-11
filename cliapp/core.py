@@ -3,6 +3,7 @@
 import time
 from cliapp.mqtt_handler import MQTTHandler
 from cliapp.logger_module import logger, string_handler
+from cliapp.ms_protocol import handle_message
 
 def run_app(config):
     """Run the application with the given configuration."""
@@ -15,7 +16,7 @@ def run_app(config):
     #device_config = config['device']
 
     try:
-        mqtt_handler = MQTTHandler(config)
+        mqtt_handler = MQTTHandler(config=config,message_handler=handle_message)
     except Exception as e:
         logger.error(f"Cannot create MQTTHandler object: {e}")
         mqtt_handler.exit_threads()

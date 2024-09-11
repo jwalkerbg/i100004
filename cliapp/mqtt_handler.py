@@ -5,9 +5,11 @@ import paho.mqtt.client as mqtt
 from cliapp.logger_module import logger, string_handler
 
 class MQTTHandler:
-    def __init__(self, config):
+    def __init__(self, config, message_handler=None):
         self.config = config
         self.client = mqtt.Client(callback_api_version=mqtt.CallbackAPIVersion.VERSION2,client_id=self.config['mqtt']['client_id'],protocol=mqtt.MQTTv5)
+
+        self.message_handler = message_handler
 
         # Set username and password if provided
         if self.config['mqtt']['username'] and self.config['mqtt']['password']:
@@ -38,6 +40,10 @@ class MQTTHandler:
 
         self.mqtt_receive_thread = threading.Thread(target=self.receive_mqtt_message, args=((self, self.queue_rec)))
         self.mqtt_receive_thread.start()
+
+    def define_message_handler(self, handler=None):
+        """Define a custom message handler."""
+        self.message_handler = handler
 
     def exit_threads(self):
         if self.mqtt_publish_thread:
@@ -143,13 +149,7 @@ class MQTTHandler:
                 break  # Exit the thread if a None message is received
 
             # handle handle_device_message
-            handle_device_message(message)
+            if self.message_handler:
+                self.message_handler(message)
+
         logger.info(f"MQTT exited receiving thread")
-
-    def define_message_handler(self, handler):
-        """Define a custom message handler."""
-        self.client.on_message = handler
-
-def handle_device_message(message):
-    topic, payload = message
-    logger.info(f"handle_device_message: -t '{topic}' -m '{payload}'")
