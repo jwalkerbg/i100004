@@ -1,7 +1,7 @@
+import os
 from typing import Dict, Any  # Import only the necessary types
 import json
 from jsonschema import validate, ValidationError
-import os
 from cliapp.logger_module import logger, string_handler
 
 # Step 1: Define default values (hardcoded in the module)
