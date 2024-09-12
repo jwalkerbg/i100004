@@ -4,14 +4,15 @@ from setuptools import setup, find_packages
 
 setup(
     name='cliapp',
-    version='0.2.1',
+    version='0.3.1',
     description='A sample Python project with CLI and importable module',
     author='Ivan Cenov',
     author_email='i_cenov@botevgrad.com',
     url='https://github.com/jwalkerbg/cliapp',  # Project's GitHub or website
     packages=find_packages(),
     install_requires=[
-        'jsonschema'  # Add your dependencies here
+        'jsonschema',  # Add your dependencies here
+        'paho-mqtt'
     ],
     entry_points={
         'console_scripts': [
