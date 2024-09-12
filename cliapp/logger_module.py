@@ -28,7 +28,7 @@ class StringHandler(logging.Handler):
         self.log_messages = []
 
 # Logger Setup
-logger = logging.getLogger("testbench")
+logger = logging.getLogger("cliapp")
 logger.setLevel(logging.INFO)
 
 # Create the custom formatter and string handler
@@ -42,4 +42,4 @@ console_handler.setFormatter(custom_formatter)
 
 # Add handlers to the logger
 logger.addHandler(console_handler)
-logger.addHandler(string_handler)
+# logger.addHandler(string_handler)

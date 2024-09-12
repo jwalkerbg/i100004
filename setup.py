@@ -11,7 +11,8 @@ setup(
     url='https://github.com/jwalkerbg/cliapp',  # Project's GitHub or website
     packages=find_packages(),
     install_requires=[
-        'jsonschema'  # Add your dependencies here
+        'jsonschema',  # Add your dependencies here
+        'paho-mqtt'
     ],
     entry_points={
         'console_scripts': [

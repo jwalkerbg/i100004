@@ -4,3 +4,4 @@
 # e.g. click>=7.0
 
 jsonschema>0.0.0
+paho-mqtt
