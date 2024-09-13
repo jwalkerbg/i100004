@@ -7,22 +7,62 @@ import struct
 from cliapp.logger_module import logger, string_handler
 from cliapp.mqtt_handler import MQTTHandler
 
-def handle_message(message):
-    topic, payload = message
-    logger.info(f"handle_device_message: -t '{topic}' -m '{payload}'")
+class CommandProtocol:
+    def __init__(self, master_mac: str, slave_mac: str, command_timeout: int = 10):
+        """
+        Initialize the command protocol with MQTTHandler and device MAC addresses.
 
-    jp = json.loads(payload)
+        Parameters:
+        - mqtt_handler: An instance of the existing MQTTHandler class that manages the connection.
+        - master_mac: MAC address of the master device (this device).
+        - slave_mac: MAC address of the slave device (the target device).
+        - command_timeout: Timeout in seconds to wait for a response from the slave.
+        """
+        self.mqtt_handler = None
+        self.master_mac = master_mac
+        self.slave_mac = slave_mac
+        self.command_timeout = command_timeout
 
-    jdata = jp.get('data', {})
+        # quque for commands
+        self.queue_cmd = queue.Queue()
+        # queue for responses
+        self.queue_res = queue.Queue()
 
-    logger.info(f"jdata = {jdata}")
-    format_string = '<hIIIHBBB'
-    bdata = bytes.fromhex(jdata)
+        # Synchronization for waiting for responses
+        self.response_received = threading.Event()
 
-    unpacked_data = struct.unpack(format_string, bdata)
+        # To store the response
+        self.response = None
 
-    logger.info(f"unpacked_data = {unpacked_data}")
+        data_formats = { 'binary':'BINARY', 'asciihex':'ASCIIHEX', 'ascii':'ASCII', 'json':'JSON' }
 
-    packed_data = struct.pack(format_string, *unpacked_data)
-    hex_string = packed_data.hex()
-    logger.info(f"Packed data as hex string: {hex_string}")
+    def command_thread(self):
+        logger.info(f"MS command thread started")
+
+        while True:
+            # waiting for a command
+            message = self.queue_cmd.get()
+            # check for exit
+            if message == (None, None):
+                break
+
+            # sending message for publishing
+            topic, payload = message
+            self.mqtt_handler.publish_message(topic, payload)
+
+            # wait for response
+            try:
+                self.response = self.queue_res.get(block=True,timeout=self.command_timeout)
+            except queue.Empty:
+                # create timeout answer here
+                topic = f"@/{self.master_mac}/RSP/ASCIIHEX"
+                payload = '{"server":"F412FACEF2E8", "cid":123,"response":"TM","data":""}'
+                self.response = (topic, message)
+
+            # wait for previous response to be received and handled
+            self.response_received.set()
+
+        logger.info(f"MS command thread exited")
+
+    def define_mqtt_handler(self,handler:MQTTHandler =None):
+        self.mqtt_handler = handler

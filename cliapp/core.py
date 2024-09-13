@@ -3,7 +3,8 @@
 import time
 from cliapp.mqtt_handler import MQTTHandler
 from cliapp.logger_module import logger, string_handler
-from cliapp.ms_protocol import handle_message
+from cliapp.ms_protocol import CommandProtocol
+from cliapp.mqtt_dispatcher import MQTTDispatcher
 
 def run_app(config):
     """Run the application with the given configuration."""
@@ -14,9 +15,12 @@ def run_app(config):
 
     #mqtt_config = config['mqtt']
     #device_config = config['device']
+    ms_protocol = CommandProtocol(master_mac="1234567890A1", slave_mac="F412FACEF2E8", command_timeout=10)
+    mqtt_dispatcher = MQTTDispatcher(protocol=ms_protocol)
 
     try:
-        mqtt_handler = MQTTHandler(config=config,message_handler=handle_message)
+        mqtt_handler = MQTTHandler(config=config,message_handler=mqtt_dispatcher)
+        ms_protocol.define_mqtt_handler(mqtt_handler)   # needed for publishing commands
     except Exception as e:
         logger.error(f"Cannot create MQTTHandler object: {e}")
         mqtt_handler.exit_threads()
