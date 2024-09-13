@@ -55,6 +55,7 @@ def run_app(config):
             time.sleep(5)  # Sleep to avoid busy-waiting
     except KeyboardInterrupt:
         # Graceful exit on Ctrl-C
+        ms_protocol.queue_cmd.put((None, None))
         mqtt_handler.disconnect_and_exit()
         logger.warning("Application stopped by user (Ctrl-C). Exiting...")
 
