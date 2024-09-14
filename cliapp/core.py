@@ -42,7 +42,7 @@ def run_app(config):
             return
     except Exception as e:
         logger.error(f"Cannot subscribe to the MQTT broker: {e}")
-        mqtt_handler.exit_threads()
+        gracefull_exit(ms_protocol,mqtt_handler)
         return
 
     payl = '{"cid":129,"client":"1234567890A1","command":"SR","data":""}'
@@ -58,9 +58,14 @@ def run_app(config):
             time.sleep(5)  # Sleep to avoid busy-waiting
     except KeyboardInterrupt:
         # Graceful exit on Ctrl-C
-        ms_protocol.queue_cmd.put((None, None))
-        mqtt_handler.disconnect_and_exit()
+        gracefull_exit(ms_protocol,mqtt_handler)
+        #ms_protocol.queue_cmd.put((None, None))
+        #mqtt_handler.disconnect_and_exit()
         logger.warning("Application stopped by user (Ctrl-C). Exiting...")
+
+def gracefull_exit(protocol,mqtthandler):
+        protocol.queue_cmd.put((None, None))
+        mqtthandler.disconnect_and_exit()
 
 def log_configuration(config):
     logger.info("Running in verbose mode.")
