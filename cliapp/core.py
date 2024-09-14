@@ -13,8 +13,6 @@ def run_app(config):
     if config.get('verbose'):
         log_configuration(config)
 
-    #mqtt_config = config['mqtt']
-    #device_config = config['device']
     ms_protocol = CommandProtocol(config=config)
     mqtt_dispatcher = MQTTDispatcher(protocol=ms_protocol)
 
