@@ -9,10 +9,6 @@ from cliapp.mqtt_dispatcher import MQTTDispatcher
 def run_app(config):
     """Run the application with the given configuration."""
 
-    # Print verbose mode status
-    if config.get('verbose'):
-        log_configuration(config)
-
     try:
         ms_protocol = CommandProtocol(config=config)
         mqtt_dispatcher = MQTTDispatcher(protocol=ms_protocol)
@@ -67,35 +63,3 @@ def run_app(config):
 def gracefull_exit(protocol,mqtthandler):
         protocol.queue_cmd.put((None, None))
         mqtthandler.disconnect_and_exit()
-
-def log_configuration(config):
-    logger.info("Running in verbose mode.")
-    logger.info(f"Final Configuration: {config}")
-
-    # MQTT configuration
-    mqtt_config = config['mqtt']
-    logger.info(f"MQTT Configuration:")
-    logger.info(f"  Host: {mqtt_config['host']}")
-    logger.info(f"  Port: {mqtt_config['port']}")
-    logger.info(f"  Username: {mqtt_config.get('username', 'N/A')}")
-    logger.info(f"  Password: {mqtt_config.get('password', 'N/A')}")
-    logger.info(f"  Client ID: {mqtt_config.get('client_id', 'N/A')}")
-    logger.info(f"  Timeout: {mqtt_config.get('timeout', 'N/A')}")
-    logger.info(f"  Long payloads threshold: {mqtt_config.get('long_payload', 'N/A')}")
-
-    ms_config = config['ms']
-    logger.info(f"MS Configuration")
-    logger.info(f"  Client (master) MAC: {ms_config.get('client_mac', 'N/A')}")
-    logger.info(f"  Server (slave) MAC:  {ms_config.get('server_mac', 'N/A')}")
-    logger.info(f"  Command topic:  {ms_config.get('cmd_topic', 'N/A')}")
-    logger.info(f"  Response topic: {ms_config.get('rsp_topic', 'N/A')}")
-    logger.info(f"  MS protocol timeout: {ms_config.get('timeout', 'N/A')}")
-
-    # Device configuration
-    device_config = config['device']
-    logger.info(f"Device Configuration:")
-    logger.info(f"  Device Name: {device_config['name']}")
-    logger.info(f"  Timeout: {device_config['timeout']} seconds")
-    logger.info(f"  Port: {device_config['port']}")
-
-    logger.info("Application started with the above configuration...")
