@@ -4,6 +4,7 @@ import json
 from jsonschema import validate, ValidationError
 import queue
 import struct
+import random
 from cliapp.logger_module import logger, string_handler
 from cliapp.mqtt_handler import MQTTHandler
 
@@ -94,3 +95,14 @@ class CommandProtocol:
     def get_response(self):
         self.response_received.wait()
         return self.response
+
+    def generate_random_id_string(self) -> str:
+        """
+        Generate a string in the format 'id_XXX' where XXX is a random number from 0 to 999.
+        The number is zero-padded to ensure it has three digits.
+
+        Returns:
+        - str: A string in the format 'id_XXX' with a random three-digit number.
+        """
+        number = random.randint(0, 999)  # Generate a random number between 0 and 999
+        return f"id_{number:03d}"
