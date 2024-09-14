@@ -72,9 +72,6 @@ class CommandProtocol:
     def define_mqtt_handler(self,handler:MQTTHandler =None):
         self.mqtt_handler = handler
 
-        #"cmd_topic": "@/server_mac/CMD/format",
-       # "rsp_topic": "@/client_mac/RSP/format",
-
     def construct_cmd_topic(self, format='ASCIIHEX'):
         topic = self.config['ms']['cmd_topic'].replace('server_mac',self.config['ms']['server_mac'])
         topic = topic.replace('format',format)
