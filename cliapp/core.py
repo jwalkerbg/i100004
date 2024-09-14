@@ -76,7 +76,6 @@ def log_configuration(config):
     logger.info(f"  Username: {mqtt_config.get('username', 'N/A')}")
     logger.info(f"  Password: {mqtt_config.get('password', 'N/A')}")
     logger.info(f"  Client ID: {mqtt_config.get('client_id', 'N/A')}")
-    logger.info(f"  MAC address: {mqtt_config.get('mac_address', 'N/A')}")
     logger.info(f"  Timeout: {mqtt_config.get('timeout', 'N/A')}")
     logger.info(f"  Long payloads threshold: {mqtt_config.get('long_payload', 'N/A')}")
 

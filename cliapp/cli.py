@@ -14,7 +14,6 @@ def parse_args():
     parser.add_argument('--mqtt-username', type=str, help='MQTT username')
     parser.add_argument('--mqtt-password', type=str, help='MQTT password')
     parser.add_argument('--mqtt-client-id', type=str, help="MQTT Client ID, used by the broker")
-    parser.add_argument("--mqtt-mac-address", type=str, help="MAC address to use in MQTT topics. This is the MAC address of the device to work with.")
     parser.add_argument("--mqtt-timeout", type=float, help="Timeout to wait connection or other activity in MQTT handler.")
     parser.add_argument("--mqtt-lp", type=int, dest='long_payload', help="Determines threshold of long payloads. When they are longer that this value, a short string is logged instead of real payloads. --verbose makes real payloads to be logged always.")
 
