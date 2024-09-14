@@ -1,99 +1,96 @@
-# cliapp/core.py
-
 import time
-from cliapp.mqtt_handler import MQTTHandler
+import threading
+import json
+from jsonschema import validate, ValidationError
+import queue
+import struct
 from cliapp.logger_module import logger, string_handler
-from cliapp.ms_protocol import CommandProtocol
-from cliapp.mqtt_dispatcher import MQTTDispatcher
+from cliapp.mqtt_handler import MQTTHandler
 
-def run_app(config):
-    """Run the application with the given configuration."""
+class CommandProtocol:
+    def __init__(self, config):
+        """
+        Initialize the command protocol with MQTTHandler and device MAC addresses.
 
-    # Print verbose mode status
-    if config.get('verbose'):
-        log_configuration(config)
+        Parameters:
+        - mqtt_handler: An instance of the existing MQTTHandler class that manages the connection.
+        - master_mac: MAC address of the master device (this device).
+        - slave_mac: MAC address of the slave device (the target device).
+        - command_timeout: Timeout in seconds to wait for a response from the slave.
+        """
+        self.mqtt_handler = None
+        self.config = config
 
-    #mqtt_config = config['mqtt']
-    #device_config = config['device']
-    ms_protocol = CommandProtocol(config=config)
-    mqtt_dispatcher = MQTTDispatcher(protocol=ms_protocol)
+        # quque for commands
+        self.queue_cmd = queue.Queue()
+        # queue for responses
+        self.queue_res = queue.Queue()
 
-    try:
-        mqtt_handler = MQTTHandler(config=config,message_handler=mqtt_dispatcher)
-        ms_protocol.define_mqtt_handler(mqtt_handler)   # needed for publishing commands
-    except Exception as e:
-        logger.error(f"Cannot create MQTTHandler object: {e}")
-        mqtt_handler.exit_threads()
-        return
+        # Synchronization for waiting for responses
+        self.response_received = threading.Event()
 
-    try:
-        res = mqtt_handler.connect()
-        if not res:
-            mqtt_handler.exit_threads()
-            return
-    except Exception as e:
-        logger.error(f"Cannot connect to the MQTT broker: {e}")
-        mqtt_handler.exit_threads()
-        return
+        # To store the response
+        self.response = None
 
-    subscribe_topic = f"@/{config['ms']['client_mac']}/RSP/ASCIIHEX"   #"@/1234567890A1/RSP/ASCIIHEX"
-    try:
-        res = mqtt_handler.subscribe(subscribe_topic)
-        if not res:
-            mqtt_handler.exit_threads()
-            return
-    except Exception as e:
-        logger.error(f"Cannot subscribe to the MQTT broker: {e}")
-        mqtt_handler.exit_threads()
-        return
+        self.command_thread = None
+        self.command_thread = threading.Thread(target=self.command_thread_runner, args=(self.queue_cmd,self.queue_res))
+        self.command_thread.start()
 
-    payl = '{"cid":129,"client":"1234567890A1","command":"SR","data":""}'
-    try:
+        data_formats = { 'binary':'BINARY', 'asciihex':'ASCIIHEX', 'ascii':'ASCII', 'json':'JSON' }
+
+    def command_thread_runner(self, qcmd, qres):
+        logger.info(f"MS command thread started")
+
         while True:
-            # Simulate doing some work (replace this with actual logic)
-            topic = ms_protocol.construct_cmd_topic()
-            logger.info(f"CORE: {topic}")
-            ms_protocol.put_command(topic,payl)
-            ms_protocol.response_received.wait()
-            logger.info(f"CORE: {ms_protocol.response}")
-            ms_protocol.response_received.clear()
-            ms_protocol.response_received.clear()
-            time.sleep(5)  # Sleep to avoid busy-waiting
-    except KeyboardInterrupt:
-        # Graceful exit on Ctrl-C
-        ms_protocol.queue_cmd.put((None, None))
-        mqtt_handler.disconnect_and_exit()
-        logger.warning("Application stopped by user (Ctrl-C). Exiting...")
+            # waiting for a command
+            message = self.queue_cmd.get()
+            # check for exit
+            if message == (None, None):
+                break
 
-def log_configuration(config):
-    logger.info("Running in verbose mode.")
-    logger.info(f"Final Configuration: {config}")
+            # sending message for publishing
+            topic, payload = message
+            self.mqtt_handler.publish_message(topic, payload)
+            logger.info(f"MS ----------------> command sent")
 
-    # MQTT configuration
-    mqtt_config = config['mqtt']
-    logger.info(f"MQTT Configuration:")
-    logger.info(f"  Host: {mqtt_config['host']}")
-    logger.info(f"  Port: {mqtt_config['port']}")
-    logger.info(f"  Username: {mqtt_config.get('username', 'N/A')}")
-    logger.info(f"  Password: {mqtt_config.get('password', 'N/A')}")
-    logger.info(f"  Client ID: {mqtt_config.get('client_id', 'N/A')}")
-    logger.info(f"  MAC address: {mqtt_config.get('mac_address', 'N/A')}")
-    logger.info(f"  Timeout: {mqtt_config.get('timeout', 'N/A')}")
-    logger.info(f"  Long payloads threshold: {mqtt_config.get('long_payload', 'N/A')}")
+            # wait for response
+            try:
+                self.response = self.queue_res.get(block=True,timeout=self.config['ms'].get('timeout', 5))
+                logger.info(f"MS -----------------> responce received")
+            except queue.Empty:
+                # create timeout answer here
+                topic = self.construct_rsp_topic()
+                payload = f'{{"server":"{self.config["ms"].get("server_mac", "_")}","cid":123,"response":"TM","data":""}}'
+                self.response = (topic, payload)
+                logger.info(f"MS Timeout")
 
-    ms_config = config['ms']
-    logger.info(f"MS Configuration")
-    logger.info(f"  Client (master) MAC: {ms_config.get('client_mac', 'N/A')}")
-    logger.info(f"  Server (slave) MAC:  {ms_config.get('server_mac', 'N/A')}")
-    logger.info(f"  Command topic:  {ms_config.get('cmd_topic', 'N/A')}")
-    logger.info(f"  Response topic: {ms_config.get('rsp_topic', 'N/A')}")
-    logger.info(f"  MS protocol timeout: {ms_config.get('timeout', 'N/A')}")
+            # wait for previous response to be received and handled
+            self.response_received.set()
 
-    # Device configuration
-    device_config = config['device']
-    logger.info(f"Device Configuration:")
-    logger.info(f"  Device Name: {device_config['name']}")
-    logger.info(f"  Timeout: {device_config['timeout']} seconds")
-    logger.info(f"  Port: {device_config['port']}")
+        logger.info(f"MS command thread exited")
 
-    logger.info("Application started with the above configuration...")
+    def define_mqtt_handler(self,handler:MQTTHandler =None):
+        self.mqtt_handler = handler
+
+        #"cmd_topic": "@/server_mac/CMD/format",
+       # "rsp_topic": "@/client_mac/RSP/format",
+
+    def construct_cmd_topic(self, format='ASCIIHEX'):
+        topic = self.config['ms']['cmd_topic'].replace('server_mac',self.config['ms']['server_mac'])
+        topic = topic.replace('format',format)
+        return topic
+
+    def construct_rsp_topic(self,format='ASCIIHEX'):
+        topic = self.config['ms']['rsp_topic'].replace('client_mac',self.config['ms']['client_mac'])
+        topic = topic.replace('format',format)
+        return topic
+
+    def put_command(self,topic, payload):
+        self.queue_cmd.put((topic,payload))
+
+    def put_response(self,topic,payload):
+        self.queue_res.put((topic,payload))
+
+    def get_response(self):
+        self.response_received.wait()
+        return self.response
