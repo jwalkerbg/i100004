@@ -64,8 +64,7 @@ class CommandProtocol:
                 payload = f'{{"server":"{self.config["ms"].get("server_mac", "_")}","cid":123,"response":"TM","data":""}}'
                 self.response = (topic, payload)
                 logger.info(f"MS Timeout")
-
-            # wait for previous response to be received and handled
+            # flag that response has received or generated timeout response
             self.response_received.set()
 
         logger.info(f"MS command thread exited")
