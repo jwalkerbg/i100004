@@ -100,7 +100,7 @@ class CommandProtocol:
         self.response_received.wait()
         return self.response
 
-    def generate_random_id_string(self) -> str:
+    def generate_random_id_string(self) -> int:
         """
         Generate a string in the format 'id_XXX' where XXX is a random number from 0 to 999.
         The number is zero-padded to ensure it has three digits.
@@ -109,4 +109,4 @@ class CommandProtocol:
         - str: A string in the format 'id_XXX' with a random three-digit number.
         """
         number = random.randint(0, 999)  # Generate a random number between 0 and 999
-        return f"id_{number:03d}"
+        return number

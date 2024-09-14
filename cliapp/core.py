@@ -5,6 +5,7 @@ from cliapp.mqtt_handler import MQTTHandler
 from cliapp.logger_module import logger, string_handler
 from cliapp.ms_protocol import CommandProtocol
 from cliapp.mqtt_dispatcher import MQTTDispatcher
+from cliapp.ms_host import MShost
 
 def run_app(config):
     """Run the application with the given configuration."""
@@ -43,15 +44,11 @@ def run_app(config):
         return
 
     payl = '{"cid":129,"client":"1234567890A1","command":"SR","data":""}'
+    ms_host = MShost(ms_protocol=ms_protocol,config=config)
     try:
         while True:
             # Simulate doing some work (replace this with actual logic)
-            topic = ms_protocol.construct_cmd_topic()
-            logger.info(f"CORE: {topic}")
-            ms_protocol.put_command(topic,payl)
-            ms_protocol.response_received.wait()
-            logger.info(f"CORE: {ms_protocol.response}")
-            ms_protocol.response_received.clear()
+            ms_host.ms_sensors()
             time.sleep(5)  # Sleep to avoid busy-waiting
     except KeyboardInterrupt:
         # Graceful exit on Ctrl-C
