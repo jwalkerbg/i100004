@@ -8,7 +8,7 @@ from cliapp.logger_module import logger, string_handler
 from cliapp.mqtt_handler import MQTTHandler
 
 class CommandProtocol:
-    def __init__(self, master_mac: str, slave_mac: str, command_timeout: int = 10):
+    def __init__(self, config):
         """
         Initialize the command protocol with MQTTHandler and device MAC addresses.
 
@@ -19,9 +19,7 @@ class CommandProtocol:
         - command_timeout: Timeout in seconds to wait for a response from the slave.
         """
         self.mqtt_handler = None
-        self.master_mac = master_mac
-        self.slave_mac = slave_mac
-        self.command_timeout = command_timeout
+        self.config = config
 
         # quque for commands
         self.queue_cmd = queue.Queue()
@@ -53,15 +51,18 @@ class CommandProtocol:
             # sending message for publishing
             topic, payload = message
             self.mqtt_handler.publish_message(topic, payload)
+            logger.info(f"MS ----------------> command sent")
 
             # wait for response
             try:
-                self.response = self.queue_res.get(block=True,timeout=self.command_timeout)
+                self.response = self.queue_res.get(block=True,timeout=self.config['ms'].get('timeout', 5))
+                logger.info(f"MS -----------------> responce received")
             except queue.Empty:
                 # create timeout answer here
-                topic = f"@/{self.master_mac}/RSP/ASCIIHEX"
-                payload = '{"server":"F412FACEF2E8", "cid":123,"response":"TM","data":""}'
-                self.response = (topic, message)
+                topic = self.construct_rsp_topic()
+                payload = f'{{"server":"{self.config["ms"].get("server_mac", "_")}","cid":123,"response":"TM","data":""}}'
+                self.response = (topic, payload)
+                logger.info(f"MS Timeout")
 
             # wait for previous response to be received and handled
             self.response_received.set()
@@ -70,3 +71,26 @@ class CommandProtocol:
 
     def define_mqtt_handler(self,handler:MQTTHandler =None):
         self.mqtt_handler = handler
+
+        #"cmd_topic": "@/server_mac/CMD/format",
+       # "rsp_topic": "@/client_mac/RSP/format",
+
+    def construct_cmd_topic(self, format='ASCIIHEX'):
+        topic = self.config['ms']['cmd_topic'].replace('server_mac',self.config['ms']['server_mac'])
+        topic = topic.replace('format',format)
+        return topic
+
+    def construct_rsp_topic(self,format='ASCIIHEX'):
+        topic = self.config['ms']['rsp_topic'].replace('client_mac',self.config['ms']['client_mac'])
+        topic = topic.replace('format',format)
+        return topic
+
+    def put_command(self,topic, payload):
+        self.queue_cmd.put((topic,payload))
+
+    def put_response(self,topic,payload):
+        self.queue_res.put((topic,payload))
+
+    def get_response(self):
+        self.response_received.wait()
+        return self.response

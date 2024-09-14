@@ -18,6 +18,13 @@ def parse_args():
     parser.add_argument("--mqtt-timeout", type=float, help="Timeout to wait connection or other activity in MQTT handler.")
     parser.add_argument("--mqtt-lp", type=int, dest='long_payload', help="Determines threshold of long payloads. When they are longer that this value, a short string is logged instead of real payloads. --verbose makes real payloads to be logged always.")
 
+    # ms protocol
+    parser.add_argument("--ms-client_mac", type=str, dest='ms_client_mac', help="MAC address of the client (master side).")
+    parser.add_argument("--ms-server_mac", type=str, dest='ms_server_mac', help="MAC address of the server (slave side).")
+    parser.add_argument("--ms-cmd-topic", type=str, dest='ms_cmd_topic', help="Template of command topic.")
+    parser.add_argument("--ms-rsp-topic", type=str, dest='ms_rsp_topic', help="Template of response topic.")
+    parser.add_argument("--ms-timeout", type=float, dest='ms_timeout', help="Timeout used in protocol to wait for response.")
+
     # Device options
     parser.add_argument('--device-name', type=str, help='Name of the device under test')
     parser.add_argument('--device-port', type=str, help='Port used to connect to the device (e.g., ttyUSB0)')

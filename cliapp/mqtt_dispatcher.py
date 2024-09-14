@@ -36,3 +36,5 @@ class MQTTDispatcher:
         packed_data = struct.pack(format_string, *unpacked_data)
         hex_string = packed_data.hex()
         logger.info(f"Packed data as hex string: {hex_string}")
+
+        self.ms_protocol.put_response(topic,payload)

@@ -16,6 +16,13 @@ DEFAULT_CONFIG = {
         "timeout": 15.0,
         "long_payload": 25
     },
+    'ms': {
+        'client_mac': '1234567890A1',
+        'server_mac': 'F412FACEF2E8',
+        'cmd_topic': '@/server_mac/CMD/format',
+        'rsp_topic': '@/client_mac/RSP/format',
+        'timeout': 5.0
+    },
     'device': {
         'name': 'UnknownDevice',
         'protocol': 'ttyUSB0',
@@ -41,6 +48,17 @@ CONFIG_SCHEMA = {
                 "long_payload": {"type": "integer", "minimum": 10, "maximum": 32768}
             },
             "required": ["host", "port"]
+        },
+        "ms": {
+            "type": "object",
+            "properties": {
+                "client_mac": {"type": "string"},
+                "server_mac": {"type": "string"},
+                "cmd_topic": {"type": "string"},
+                "rsp_topic": {"type": "string"},
+                "timeout": {"type": "number"}
+            },
+            "required": ["client_mac", "server_mac", "cmd_topic", "rsp_topic", "timeout"]
         },
         "device": {
             "type": "object",
@@ -108,6 +126,18 @@ def merge_configs(defaults, config_file, config_cli):
         config['mqtt']['timeout'] = config_cli.mqtt_timeout
     if config_cli.long_payload:
         config['mqtt']['long_payload'] = config_cli.long_payload
+
+    # handle ms protocol overrides
+    if config_cli.ms_client_mac:
+        config['ms']['client_mac'] = config_cli.ms_client_mac
+    if config_cli.ms_server_mac:
+        config['ms']['server_mac'] = config_cli.ms_server_mac
+    if config_cli.ms_cmd_topic:
+        config['ms']['cmd_topic'] = config_cli.ms_cmd_topic
+    if config_cli.ms_rsp_topic:
+        config['ms']['rsp_topic'] = config_cli.ms_rsp_topic
+    if config_cli.ms_timeout:
+        config['ms']['timeout'] = config_cli.ms_timeout
 
     # Handle Device CLI overrides
     if config_cli.device_name:

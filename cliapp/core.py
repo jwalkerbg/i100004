@@ -15,7 +15,7 @@ def run_app(config):
 
     #mqtt_config = config['mqtt']
     #device_config = config['device']
-    ms_protocol = CommandProtocol(master_mac="1234567890A1", slave_mac="F412FACEF2E8", command_timeout=10)
+    ms_protocol = CommandProtocol(config=config)
     mqtt_dispatcher = MQTTDispatcher(protocol=ms_protocol)
 
     try:
@@ -36,7 +36,7 @@ def run_app(config):
         mqtt_handler.exit_threads()
         return
 
-    subscribe_topic = "@/1234567890A1/RSP/ASCIIHEX"
+    subscribe_topic = f"@/{config['ms']['client_mac']}/RSP/ASCIIHEX"   #"@/1234567890A1/RSP/ASCIIHEX"
     try:
         res = mqtt_handler.subscribe(subscribe_topic)
         if not res:
@@ -51,7 +51,12 @@ def run_app(config):
     try:
         while True:
             # Simulate doing some work (replace this with actual logic)
-            mqtt_handler.publish_message(f"@/{config['mqtt']['mac_address']}/CMD/ASCIIHEX",payl)
+            topic = ms_protocol.construct_cmd_topic()
+            logger.info(f"CORE: {topic}")
+            ms_protocol.put_command(topic,payl)
+            ms_protocol.response_received.wait()
+            logger.info(f"CORE: {ms_protocol.response}")
+            ms_protocol.response_received.clear()
             time.sleep(5)  # Sleep to avoid busy-waiting
     except KeyboardInterrupt:
         # Graceful exit on Ctrl-C
@@ -74,6 +79,14 @@ def log_configuration(config):
     logger.info(f"  MAC address: {mqtt_config.get('mac_address', 'N/A')}")
     logger.info(f"  Timeout: {mqtt_config.get('timeout', 'N/A')}")
     logger.info(f"  Long payloads threshold: {mqtt_config.get('long_payload', 'N/A')}")
+
+    ms_config = config['ms']
+    logger.info(f"MS Configuration")
+    logger.info(f"  Client (master) MAC: {ms_config.get('client_mac', 'N/A')}")
+    logger.info(f"  Server (slave) MAC:  {ms_config.get('server_mac', 'N/A')}")
+    logger.info(f"  Command topic:  {ms_config.get('cmd_topic', 'N/A')}")
+    logger.info(f"  Response topic: {ms_config.get('rsp_topic', 'N/A')}")
+    logger.info(f"  MS protocol timeout: {ms_config.get('timeout', 'N/A')}")
 
     # Device configuration
     device_config = config['device']
