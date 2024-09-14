@@ -13,10 +13,9 @@ def run_app(config):
     if config.get('verbose'):
         log_configuration(config)
 
-    ms_protocol = CommandProtocol(config=config)
-    mqtt_dispatcher = MQTTDispatcher(protocol=ms_protocol)
-
     try:
+        ms_protocol = CommandProtocol(config=config)
+        mqtt_dispatcher = MQTTDispatcher(protocol=ms_protocol)
         mqtt_handler = MQTTHandler(config=config,message_handler=mqtt_dispatcher)
         ms_protocol.define_mqtt_handler(mqtt_handler)   # needed for publishing commands
     except Exception as e:
@@ -24,6 +23,7 @@ def run_app(config):
         mqtt_handler.exit_threads()
         return
 
+    # connect broker
     try:
         res = mqtt_handler.connect()
         if not res:
@@ -34,10 +34,11 @@ def run_app(config):
         mqtt_handler.exit_threads()
         return
 
-    subscribe_topic = f"@/{config['ms']['client_mac']}/RSP/ASCIIHEX"   #"@/1234567890A1/RSP/ASCIIHEX"
+    # subscribe for MS protocol
     try:
-        res = mqtt_handler.subscribe(subscribe_topic)
+        res = ms_protocol.subscribe(ms_protocol.construct_rsp_topic())
         if not res:
+            logger.warning(f"CORE: Not successful subscription. Giving up")
             mqtt_handler.exit_threads()
             return
     except Exception as e:

@@ -69,6 +69,14 @@ class CommandProtocol:
 
         logger.info(f"MS command thread exited")
 
+    def subscribe(self, topic: str, timeout: float = 5.0):
+        self.mqtt_handler.subscribe(topic)
+
+        if self.mqtt_handler.subscription_estabilished.wait(timeout=self.config['mqtt'].get('timeout', timeout)):
+            return True
+        else:
+            return False
+
     def define_mqtt_handler(self,handler:MQTTHandler =None):
         self.mqtt_handler = handler
 
