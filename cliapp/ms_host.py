@@ -21,8 +21,8 @@ class MShost:
     def ms_sensors(self):
         topic = self.ms_protocol.construct_cmd_topic()
         logger.info(f"MSH: {topic}")
-        payl = f'{{"cid":{self.ms_protocol.generate_random_cid()},"client":"{self.config["ms"].get("client_mac","_")}","command":"SR","data":""}}'
-        self.ms_protocol.put_command(topic,payl)
+        payload = f'{{"command":"SR","data":""}}'
+        self.ms_protocol.put_command(topic,payload)
 
         self.ms_protocol.response_received.wait()
         logger.info(f"MSH: {self.ms_protocol.response}")

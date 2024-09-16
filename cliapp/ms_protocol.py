@@ -147,6 +147,7 @@ class CommandProtocol:
 
             # sending message for publishing
             topic, payload = message
+            payload = self.add_tracking_information(payload=payload)
             self.mqtt_handler.publish_message(topic, payload)
             try:
                 jpayload = json.loads(payload)
@@ -190,6 +191,11 @@ class CommandProtocol:
             self.response_received.set()
 
         logger.info(f"MS command thread exited")
+
+    def add_tracking_information(self,payload):
+        payload = re.sub('({)', r'\1' + f'"client":"{self.config["ms"].get("client_mac","_")}",', payload)
+        payload = re.sub('({)', r'\1' + f'"cid":{self.generate_random_cid()},', payload)
+        return payload
 
     def construct_not_ok_response(self, cid: int, response: str):
         topic = self.construct_rsp_topic()
