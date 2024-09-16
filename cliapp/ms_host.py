@@ -13,7 +13,14 @@ class MShost:
         self.config = config
 
     def ms_who_am_i(self):
-        pass
+        payload = f'{{"command":"WH","data":""}}'
+        self.ms_protocol.put_command(payload)
+
+        self.ms_protocol.response_received.wait()
+        payload = self.ms_protocol.response
+        logger.info(f"MSH response: {payload}")
+        self.ms_protocol.response_received.clear()
+        return payload
 
     def ms_nop(self):
         pass

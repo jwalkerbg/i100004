@@ -59,6 +59,8 @@ def run_app(config):
             else:
                 logger.info("MSH: No valid data received")
 
+            payload = ms_host.ms_who_am_i()
+
             time.sleep(5)  # Sleep to avoid busy-waiting
     except KeyboardInterrupt:
         # Graceful exit on Ctrl-C
