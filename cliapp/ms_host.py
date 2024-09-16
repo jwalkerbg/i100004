@@ -20,20 +20,23 @@ class MShost:
 
     def ms_sensors(self):
         topic = self.ms_protocol.construct_cmd_topic()
-        logger.info(f"CORE: {topic}")
-        payl = f'{{"cid":{self.ms_protocol.generate_random_id_string()},"client":"{self.config["ms"].get("client_mac","_")}","command":"SR","data":""}}'
+        logger.info(f"MSH: {topic}")
+        payl = f'{{"cid":{self.ms_protocol.generate_random_cid()},"client":"{self.config["ms"].get("client_mac","_")}","command":"SR","data":""}}'
         self.ms_protocol.put_command(topic,payl)
+
         self.ms_protocol.response_received.wait()
-        logger.info(f"CORE: {self.ms_protocol.response}")
+        logger.info(f"MSH: {self.ms_protocol.response}")
         topic, payload = self.ms_protocol.response
 
         logger.info(f"MSH payload: {payload}")
-        jp = json.loads(payload)
-        jdata = jp.get('data', {})
-        format_string = '<hIIIHBBB'
-        bdata = bytes.fromhex(jdata)
-        unpacked_data = struct.unpack(format_string, bdata)
-        logger.info(f"MSH unpacked_data = {unpacked_data}")
+        if payload.get("response","") == "OK":
+            jdata = payload.get('data', None)
+            format_string = '<hIIIHBBB'
+            bdata = bytes.fromhex(jdata)
+            unpacked_data = struct.unpack(format_string, bdata)
+            logger.info(f"MSH unpacked_data = {unpacked_data}")
+        else:
+            logger.info("MSH: No valid data received")
 
         self.ms_protocol.response_received.clear()
 
