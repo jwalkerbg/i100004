@@ -19,26 +19,14 @@ class MShost:
         pass
 
     def ms_sensors(self):
-        topic = self.ms_protocol.construct_cmd_topic()
-        logger.info(f"MSH: {topic}")
         payload = f'{{"command":"SR","data":""}}'
-        self.ms_protocol.put_command(topic,payload)
+        self.ms_protocol.put_command(payload)
 
         self.ms_protocol.response_received.wait()
-        logger.info(f"MSH: {self.ms_protocol.response}")
-        topic, payload = self.ms_protocol.response
-
-        logger.info(f"MSH payload: {payload}")
-        if payload.get("response","") == "OK":
-            jdata = payload.get('data', None)
-            format_string = '<hIIIHBBB'
-            bdata = bytes.fromhex(jdata)
-            unpacked_data = struct.unpack(format_string, bdata)
-            logger.info(f"MSH unpacked_data = {unpacked_data}")
-        else:
-            logger.info("MSH: No valid data received")
-
+        payload = self.ms_protocol.response
+        logger.info(f"MSH response: {payload}")
         self.ms_protocol.response_received.clear()
+        return payload
 
     def ms_wificred():
         pass

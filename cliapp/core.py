@@ -1,6 +1,7 @@
 # cliapp/core.py
 
 import time
+import struct
 from cliapp.mqtt_handler import MQTTHandler
 from cliapp.logger_module import logger, string_handler
 from cliapp.ms_protocol import CommandProtocol
@@ -43,12 +44,21 @@ def run_app(config):
         gracefull_exit(ms_protocol,mqtt_handler)
         return
 
-    payl = '{"cid":129,"client":"1234567890A1","command":"SR","data":""}'
     ms_host = MShost(ms_protocol=ms_protocol,config=config)
+
     try:
         while True:
             # Simulate doing some work (replace this with actual logic)
-            ms_host.ms_sensors()
+            payload = ms_host.ms_sensors()
+            if payload.get("response","") == "OK":
+                jdata = payload.get('data', None)
+                format_string = '<hIIIHBBB'
+                bdata = bytes.fromhex(jdata)
+                unpacked_data = struct.unpack(format_string, bdata)
+                logger.info(f"MSH unpacked_data = {unpacked_data}")
+            else:
+                logger.info("MSH: No valid data received")
+
             time.sleep(5)  # Sleep to avoid busy-waiting
     except KeyboardInterrupt:
         # Graceful exit on Ctrl-C
@@ -57,6 +67,6 @@ def run_app(config):
         #mqtt_handler.disconnect_and_exit()
         logger.warning("Application stopped by user (Ctrl-C). Exiting...")
 
-def gracefull_exit(protocol,mqtthandler):
-        protocol.queue_cmd.put((None, None))
+def gracefull_exit(protocol: CommandProtocol,mqtthandler: MQTTHandler):
+        protocol.put_command(None)
         mqtthandler.disconnect_and_exit()

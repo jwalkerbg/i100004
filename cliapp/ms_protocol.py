@@ -142,12 +142,12 @@ class CommandProtocol:
             # waiting for a command
             message = self.queue_cmd.get()
             # check for exit
-            if message == (None, None):
+            if message == None:
                 break
 
             # sending message for publishing
-            topic, payload = message
-            payload = self.add_tracking_information(payload=payload)
+            topic = self.construct_cmd_topic()
+            payload = self.add_tracking_information(payload=message)
             self.mqtt_handler.publish_message(topic, payload)
             try:
                 jpayload = json.loads(payload)
@@ -187,7 +187,7 @@ class CommandProtocol:
                 continue
 
             # flag that response has received or generated timeout response
-            self.response = (topic, payload)
+            self.response = payload
             self.response_received.set()
 
         logger.info(f"MS command thread exited")
@@ -198,14 +198,13 @@ class CommandProtocol:
         return payload
 
     def construct_not_ok_response(self, cid: int, response: str):
-        topic = self.construct_rsp_topic()
         payload = {}
         payload["dataType"] = "asciihex"
         payload["server"] = f"{self.config["ms"].get("server_mac", "_")}"
         payload["cid"] = cid
         payload["response"] = response
         payload["data"] = ""
-        self.response = (topic, payload)
+        self.response = payload
 
     def subscribe(self, topic: str, timeout: float = 5.0):
         self.mqtt_handler.subscribe(topic)
@@ -228,8 +227,8 @@ class CommandProtocol:
         topic = topic.replace('format',format)
         return topic
 
-    def put_command(self,topic, payload):
-        self.queue_cmd.put((topic,payload))
+    def put_command(self, payload):
+        self.queue_cmd.put(payload)
 
     def put_response(self,topic,payload):
         self.queue_res.put((topic,payload))
