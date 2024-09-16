@@ -172,7 +172,13 @@ class CommandProtocol:
                 self.response_received.set()
                 continue
 
-            self.add_dataType(topic, payload)
+            payload = self.add_dataType(topic, payload)
+            if payload == None:
+                # construct BD response
+                self.construct_not_ok_response(cid,"BD")
+                self.response_received.set()
+                continue
+
             if not self.validate_json(data=payload):
                 # construct BD response
                 self.construct_not_ok_response(cid,"BD")
@@ -230,9 +236,6 @@ class CommandProtocol:
         return random.randint(0, 999)  # Generate a random, payload: dict
 
     def add_dataType(self, topic: str, payload: dict) -> None:
-        """
-        Adds addiotional property "dataType" depending on last term in the payload of response topic.
-        """
         # Split the topic by '/'
         topic_parts = topic.split('/')
 
@@ -246,10 +249,12 @@ class CommandProtocol:
         # Check if the format part is in the array of valid formats
         if format_part in self.valid_formats:
             # Find the index in valid_formats and map to mapped_formats
+            # Note that valid_formats and mapped_formats are parallel arrays and are under control.
             index = self.valid_formats.index(format_part)
             payload["dataType"] = self.mapped_formats[index]
-            logger.info(f"---------------------> add_dataType: {payload}")
-            self.response = (topic, payload)
+            return payload
+        else:
+            return None
 
     def validate_json(self, data) -> bool:
         validator = Draft7Validator(self.RESPONSE_SCHEMA)
