@@ -12,8 +12,8 @@ class MShost:
         self.ms_protocol = ms_protocol
         self.config = config
 
-    def ms_who_am_i(self):
-        payload = f'{{"command":"WH","data":""}}'
+    def ms_simple_command(self, cmd: str):
+        payload = f'{{"command":"{cmd}","data":""}}'
         self.ms_protocol.put_command(payload)
 
         self.ms_protocol.response_received.wait()
@@ -22,8 +22,11 @@ class MShost:
         self.ms_protocol.response_received.clear()
         return payload
 
+    def ms_who_am_i(self):
+        return self.ms_simple_command("WH")
+
     def ms_nop(self):
-        pass
+        return self.ms_simple_command("NP")
 
     def ms_sensors(self):
         payload = f'{{"command":"SR","data":""}}'
@@ -35,41 +38,41 @@ class MShost:
         self.ms_protocol.response_received.clear()
         return payload
 
-    def ms_wificred():
+    def ms_wificred(self):
         pass
 
-    def ms_set_mode():
+    def ms_set_mode(self):
         pass
 
-    def ms_getsmac():
+    def ms_getsmac(self):
+        return self.ms_simple_command("GM")
+
+    def ms_set_amb_thr(self):
         pass
 
-    def ms_set_amb_thr():
+    def ms_set_hum_thr(self):
         pass
 
-    def ms_set_hum_thr():
+    def ms_set_gas_thr(self):
         pass
 
-    def ms_set_gas_thr():
+    def ms_set_forced_time(self):
         pass
 
-    def ms_set_forced_time():
+    def ms_set_post_time(self):
         pass
 
-    def ms_set_post_time():
+    def ms_ambient_light(self):
         pass
 
-    def ms_ambient_light():
+    def ms_get_params(self):
+        return self.ms_simple_command("PG")
+
+    def ms_start_vent(self):
+        return self.ms_simple_command("SV")
+
+    def ms_logs(self):
         pass
 
-    def ms_get_params():
-        pass
-
-    def ms_start_vent():
-        pass
-
-    def ms_logs():
-        pass
-
-    def ms_mqtt_ready():
-        pass
+    def ms_mqtt_ready(self):
+        return self.ms_simple_command("MQ")

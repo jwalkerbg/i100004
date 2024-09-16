@@ -61,6 +61,8 @@ def run_app(config):
 
             payload = ms_host.ms_who_am_i()
 
+            payload = ms_host.ms_get_params()
+
             time.sleep(5)  # Sleep to avoid busy-waiting
     except KeyboardInterrupt:
         # Graceful exit on Ctrl-C
