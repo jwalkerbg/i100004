@@ -415,7 +415,6 @@ class MQTTHandler:
 
         # Optionally, remove the message ID from a tracking dictionary of pending messages (if applicable)
         if mid in self.pending_messages:
-            logger.info(f"MQTT removing message ID '{mid}' from pending messages.")
             self.pending_messages.pop(mid, None)
 
     def publish_message(self, topic: str, payload: str) -> None:
@@ -487,7 +486,6 @@ class MQTTHandler:
             if result.rc == mqtt.MQTT_ERR_SUCCESS:
                 mid = result.mid  # Get the message ID for tracking
                 self.pending_messages[mid] = {'topic': topic, 'payload': payload}  # Track the message
-                logger.info(f"MQTT message queued for topic '{topic}' with mid '{mid}'")
             else:
                 logger.warning(f"MQTT failed to publish message to topic '{topic}', return code: {result.rc}")
 

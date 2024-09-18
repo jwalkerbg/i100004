@@ -133,8 +133,6 @@ class CommandProtocol:
         self.command_thread = threading.Thread(target=self.command_thread_runner, args=(self.queue_cmd,self.queue_res))
         self.command_thread.start()
 
-        data_formats = { 'binary':'BINARY', 'asciihex':'ASCIIHEX', 'ascii':'ASCII', 'json':'JSON' }
-
     def command_thread_runner(self, qcmd, qres):
         logger.info(f"MS command thread started")
 
