@@ -22,6 +22,18 @@ class MShost:
         self.ms_protocol.response_received.clear()
         return payload
 
+    def ms_command_send_uint16(self, cmd: str, value: int):
+        format_string = '<H'
+        pd = struct.pack(format_string,value).hex()
+        payload = f'{{"command":"{cmd}","data":"{pd}"}}'
+        self.ms_protocol.put_command(payload)
+
+        self.ms_protocol.response_received.wait()
+        payload = self.ms_protocol.response
+        logger.info(f"MSH response: {payload}")
+        self.ms_protocol.response_received.clear()
+        return payload
+
     def ms_who_am_i(self):
         return self.ms_simple_command("WH")
 
@@ -38,32 +50,52 @@ class MShost:
         self.ms_protocol.response_received.clear()
         return payload
 
-    def ms_wificred(self):
-        pass
+    def ms_wificred(self, ssid: str, password: str):
+        ssid_bytes = ssid.encode('ascii')
+        password_bytes = password.encode('ascii')
+        data = bytearray(ssid_bytes) + b'\0' + bytearray(password_bytes)
+        data = data.hex()
+        payload = f'{{"command":"WF","data":"{data}"}}'
+        self.ms_protocol.put_command(payload)
 
-    def ms_set_mode(self):
-        pass
+        self.ms_protocol.response_received.wait()
+        payload = self.ms_protocol.response
+        logger.info(f"MSH response: {payload}")
+        self.ms_protocol.response_received.clear()
+        return payload
+
+    def ms_set_mode(self, mode: int):
+        format_string = 'B'
+        pd = struct.pack(format_string,mode).hex()
+        payload = f'{{"command":"MD","data":"{pd}"}}'
+        self.ms_protocol.put_command(payload)
+
+        self.ms_protocol.response_received.wait()
+        payload = self.ms_protocol.response
+        logger.info(f"MSH response: {payload}")
+        self.ms_protocol.response_received.clear()
+        return payload
 
     def ms_getsmac(self):
         return self.ms_simple_command("GM")
 
-    def ms_set_amb_thr(self):
-        pass
+    def ms_set_amb_thr(self, value: int):
+        return self.ms_command_send_uint16("AH", value)
 
-    def ms_set_hum_thr(self):
-        pass
+    def ms_set_hum_thr(self, value: int):
+        return self.ms_command_send_uint16("HH", value)
 
-    def ms_set_gas_thr(self):
-        pass
+    def ms_set_gas_thr(self, value: int):
+        return self.ms_command_send_uint16("GH", value)
 
-    def ms_set_forced_time(self):
-        pass
+    def ms_set_forced_time(self, value: int):
+        return self.ms_command_send_uint16("FT", value)
 
-    def ms_set_post_time(self):
-        pass
+    def ms_set_post_time(self, value: int):
+        return self.ms_command_send_uint16("PT", value)
 
-    def ms_ambient_light(self):
-        pass
+    def ms_ambient_light(self, value: int):
+        return self.ms_command_send_uint16("AL", value)
 
     def ms_get_params(self):
         return self.ms_simple_command("PG")
@@ -71,8 +103,8 @@ class MShost:
     def ms_start_vent(self):
         return self.ms_simple_command("SV")
 
-    def ms_logs(self):
-        pass
+    def ms_logs(self, value: int):
+        return self.ms_command_send_uint16("PT", value)
 
     def ms_mqtt_ready(self):
         return self.ms_simple_command("MQ")
