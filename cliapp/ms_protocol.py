@@ -64,8 +64,8 @@ class CommandProtocol:
                 "properties": {
                     "data": {
                         "type": "string",
-                        "pattern": "^[0-9a-fA-F]+$",
-                        "minLength": 1
+                        "pattern": "^[0-9a-fA-F]*$",
+                        "minLength": 0
                     }
                 }
             },
@@ -80,7 +80,7 @@ class CommandProtocol:
                         "data": {
                             "type": "string",
                             "pattern": "^[\\x20-\\x7E]*$",
-                            "minLength": 1
+                            "minLength": 0
                         }
                     }
                 },
@@ -94,8 +94,8 @@ class CommandProtocol:
                         "properties": {
                             "data": {
                                 "type": "string",
-                                "pattern": "^[A-Za-z0-9+/]+={0,2}$",
-                                "minLength": 1
+                                "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$",
+                                "minLength": 0
                             }
                         }
                     },
