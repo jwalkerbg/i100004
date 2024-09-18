@@ -197,11 +197,11 @@ class CommandProtocol:
 
     def construct_not_ok_response(self, cid: int, response: str):
         payload = {}
-        payload["dataType"] = "asciihex"
         payload["server"] = f'{self.config["ms"].get("server_mac", "_")}'
         payload["cid"] = cid
         payload["response"] = response
         payload["data"] = ""
+        payload["dataType"] = "asciihex"
         self.response = payload
 
     def subscribe(self, topic: str, timeout: float = 5.0):
