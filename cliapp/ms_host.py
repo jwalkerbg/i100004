@@ -41,14 +41,7 @@ class MShost:
         return self.ms_simple_command("NP")
 
     def ms_sensors(self):
-        payload = f'{{"command":"SR","data":""}}'
-        self.ms_protocol.put_command(payload)
-
-        self.ms_protocol.response_received.wait()
-        payload = self.ms_protocol.response
-        logger.info(f"MSH response: {payload}")
-        self.ms_protocol.response_received.clear()
-        return payload
+        return self.ms_simple_command("SR")
 
     def ms_wificred(self, ssid: str, password: str):
         ssid_bytes = ssid.encode('ascii')
@@ -108,3 +101,6 @@ class MShost:
 
     def ms_mqtt_ready(self):
         return self.ms_simple_command("MQ")
+
+    def ms_restart(self):
+         return self.ms_simple_command("RS")
