@@ -61,7 +61,20 @@ def run_app(config):
 
             payload = ms_host.ms_who_am_i()
 
-            payload = ms_host.ms_get_params()
+            payload = ms_host.ms_wificred("iv_cenov", "6677890vla")
+
+            # payload = ms_host.ms_get_params()
+
+            # payload = ms_host.ms_set_mode(0)
+            # payload = ms_host.ms_set_amb_thr(1024)
+            # payload = ms_host.ms_set_hum_thr(75)
+            # payload = ms_host.ms_set_hum_thr(100)
+
+            # payload = ms_host.ms_set_gas_thr(16000)
+            # payload = ms_host.ms_set_gas_thr(50000)
+
+            # payload = ms_host.ms_set_forced_time(25)
+            # payload = ms_host.ms_set_forced_time(61)
 
             time.sleep(5)  # Sleep to avoid busy-waiting
     except KeyboardInterrupt:
