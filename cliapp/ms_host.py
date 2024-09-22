@@ -103,4 +103,4 @@ class MShost:
         return self.ms_simple_command("MQ")
 
     def ms_restart(self):
-         return self.ms_simple_command("RS")
+        return self.ms_simple_command("RS")
