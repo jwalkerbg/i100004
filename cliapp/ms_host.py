@@ -104,3 +104,18 @@ class MShost:
 
     def ms_restart(self):
         return self.ms_simple_command("RS")
+
+    def ms_version(self):
+        return self.ms_simple_command("VS")
+
+    def ms_serial(self, sn: str):
+        sn_bytes = sn.encode('ascii')
+        data = sn_bytes.hex()
+        payload = f'{{"command":"SN","data":"{data}"}}'
+        self.ms_protocol.put_command(payload)
+
+        self.ms_protocol.response_received.wait()
+        payload = self.ms_protocol.response
+        logger.info(f"MSH response: {payload}")
+        self.ms_protocol.response_received.clear()
+        return payload
