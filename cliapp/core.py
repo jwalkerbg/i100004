@@ -49,19 +49,31 @@ def run_app(config):
     try:
         while True:
             # Simulate doing some work (replace this with actual logic)
-            payload = ms_host.ms_sensors()
-            if payload.get("response","") == "OK":
-                jdata = payload.get('data', None)
-                format_string = '<hIIIHBBB'
-                bdata = bytes.fromhex(jdata)
-                unpacked_data = struct.unpack(format_string, bdata)
-                logger.info(f"MSH unpacked_data = {unpacked_data}")
-            else:
-                logger.info("MSH: No valid data received")
+            # payload = ms_host.ms_sensors()
+            # if payload.get("response","") == "OK":
+            #     jdata = payload.get('data', None)
+            #     format_string = '<hIIIHBBB'
+            #     bdata = bytes.fromhex(jdata)
+            #     unpacked_data = struct.unpack(format_string, bdata)
+            #     logger.info(f"MSH unpacked_data = {unpacked_data}")
+            # else:
+            #     logger.info("MSH: No valid data received")
 
             payload = ms_host.ms_who_am_i()
 
-            payload = ms_host.ms_wificred("iv_cenov", "6677890vla")
+            payload = ms_host.ms_version()
+            if payload.get("response","") == "OK":
+                jdata = payload.get('data', None)
+                byte_array = bytes.fromhex(jdata)
+                version_bytes, serial_bytes = byte_array.split(b'\0',1)
+                version = version_bytes.decode('ascii')
+                serial = serial_bytes.decode('ascii').rstrip('\x00')
+                print(f"Version: {version}")
+                print(f"Serial Number: {serial}")
+
+            # payload = ms_host.ms_serial("2407-0002")
+
+            # payload = ms_host.ms_wificred("iv_cenov", "6677890vla")
 
             # payload = ms_host.ms_get_params()
 
