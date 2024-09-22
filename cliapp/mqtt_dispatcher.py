@@ -50,10 +50,9 @@ class MQTTDispatcher:
         Returns:
             None: This function does not return anything.
         """
-        topic, payload = message
-        logger.info(f"handle_device_message: -t '{topic}' -m '{payload}'")
+        logger.info(f"handle_device_message: -t '{message[0]}' -m '{message[1]}'")
 
-        if self.match_mqtt_topic_for_ms(topic):
-            self.ms_protocol.put_response(topic, payload)
+        if self.match_mqtt_topic_for_ms(message[0]):
+            self.ms_protocol.put_response(message)
             return
         # here more dispatcher options may be added if necessary

@@ -228,8 +228,8 @@ class MSProtocol:
     def put_command(self, payload):
         self.queue_cmd.put(payload)
 
-    def put_response(self,topic,payload):
-        self.queue_res.put((topic,payload))
+    def put_response(self,message):
+        self.queue_res.put(message)
 
     def get_response(self):
         self.response_received.wait()
