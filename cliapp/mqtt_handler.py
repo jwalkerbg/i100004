@@ -10,7 +10,8 @@ class MQTTHandler:
         self.config = config
         self.client = mqtt.Client(callback_api_version=mqtt.CallbackAPIVersion.VERSION2,client_id=self.config['mqtt']['client_id'],protocol=mqtt.MQTTv5)
 
-        self.message_handler = message_handler
+        self.message_handler = None
+        self.define_message_handler(handler=message_handler)
 
         # Set username and password if provided
         if self.config['mqtt']['username'] and self.config['mqtt']['password']:
@@ -45,13 +46,14 @@ class MQTTHandler:
         self.mqtt_receive_thread = threading.Thread(target=self.receive_mqtt_message, args=((self, self.queue_rec)))
         self.mqtt_receive_thread.start()
 
-    def define_message_handler(self, handler: callable = None) -> None:
+    def define_message_handler(self, handler=None) -> None:
         """
         Assigns a custom message handler function to handle incoming MQTT messages.
 
         Parameters:
-        - handler (callable, optional): A function reference that will be called when a message is received.
+        - handler (object, optional): An object of a class that has a function that will be called when a message is received.
         If no handler is provided (None), no custom handler will be set.
+        The function in the handler has name 'handle message'
 
         Returns:
         - None: This method does not return a value. It modifies the `self.message_handler` attribute.
@@ -61,7 +63,10 @@ class MQTTHandler:
         - The handler function should accept a single parameter, which is the message object (`msg`),
         containing details about the received MQTT message.
         """
-        self.message_handler = handler
+        if hasattr(handler, 'handle_message') and callable(getattr(handler, 'handle_message')):
+            self.message_handler = handler
+        else:
+            self.message_handler = None
 
     def exit_threads(self) -> None:
         """
@@ -410,8 +415,7 @@ class MQTTHandler:
 
         # Optionally, remove the message ID from a tracking dictionary of pending messages (if applicable)
         if mid in self.pending_messages:
-            logger.info(f"MQTT removing message ID '{mid}' from pending messages.")
-            del self.pending_messages[mid]
+            self.pending_messages.pop(mid, None)
 
     def publish_message(self, topic: str, payload: str) -> None:
         """
@@ -482,7 +486,6 @@ class MQTTHandler:
             if result.rc == mqtt.MQTT_ERR_SUCCESS:
                 mid = result.mid  # Get the message ID for tracking
                 self.pending_messages[mid] = {'topic': topic, 'payload': payload}  # Track the message
-                logger.info(f"MQTT message queued for topic '{topic}' with mid '{mid}'")
             else:
                 logger.warning(f"MQTT failed to publish message to topic '{topic}', return code: {result.rc}")
 
@@ -561,6 +564,7 @@ class MQTTHandler:
 
             # Call the message handler if one is defined
             if self.message_handler:
-                self.message_handler(message)
+                if hasattr(self.message_handler, 'handle_message') and callable(getattr(self.message_handler, 'handle_message')):
+                    self.message_handler.handle_message(message)
 
         logger.info(f"MQTT exited receiving thread")
