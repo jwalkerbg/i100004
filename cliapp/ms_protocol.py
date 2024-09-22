@@ -11,7 +11,7 @@ import random
 from cliapp.logger_module import logger, string_handler
 from cliapp.mqtt_handler import MQTTHandler
 
-class CommandProtocol:
+class MSProtocol:
     def __init__(self, config):
         """
         Initialize the command protocol with MQTTHandler and device MAC addresses.
@@ -228,8 +228,8 @@ class CommandProtocol:
     def put_command(self, payload):
         self.queue_cmd.put(payload)
 
-    def put_response(self,topic,payload):
-        self.queue_res.put((topic,payload))
+    def put_response(self,message):
+        self.queue_res.put(message)
 
     def get_response(self):
         self.response_received.wait()

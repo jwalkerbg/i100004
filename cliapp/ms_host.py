@@ -5,10 +5,10 @@ import json
 import struct
 from cliapp.logger_module import logger, string_handler
 from cliapp.mqtt_handler import MQTTHandler
-from cliapp.ms_protocol import CommandProtocol
+from cliapp.ms_protocol import MSProtocol
 
 class MShost:
-    def __init__(self, ms_protocol: CommandProtocol, config):
+    def __init__(self, ms_protocol: MSProtocol, config):
         self.ms_protocol = ms_protocol
         self.config = config
 
