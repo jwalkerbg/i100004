@@ -13,7 +13,7 @@ def run_app(config):
 
     try:
         ms_protocol = CommandProtocol(config=config)
-        mqtt_dispatcher = MQTTDispatcher(protocol=ms_protocol)
+        mqtt_dispatcher = MQTTDispatcher(config=config, protocol=ms_protocol)
         mqtt_handler = MQTTHandler(config=config,message_handler=mqtt_dispatcher)
         ms_protocol.define_mqtt_handler(mqtt_handler)   # needed for publishing commands
     except Exception as e:
