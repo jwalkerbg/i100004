@@ -12,9 +12,15 @@ DEFAULT_CONFIG = {
         'username': 'guest',
         'password': 'guest',
         'client_id': 'mqttx_93919c20',
-        'mac_address': '11:22:33:44:55:66',
         "timeout": 15.0,
         "long_payload": 25
+    },
+    'ms': {
+        'client_mac': '1234567890A1',
+        'server_mac': 'F412FACEF2E8',
+        'cmd_topic': '@/server_mac/CMD/format',
+        'rsp_topic': '@/client_mac/RSP/format',
+        'timeout': 5.0
     },
     'device': {
         'name': 'UnknownDevice',
@@ -36,11 +42,21 @@ CONFIG_SCHEMA = {
                 "username": {"type": "string"},
                 "password": {"type": "string"},
                 "client_id": {"type": "string"},
-                "mac_address": {"type": "string"},
                 "timeout": {"type": "number"},
                 "long_payload": {"type": "integer", "minimum": 10, "maximum": 32768}
             },
             "required": ["host", "port"]
+        },
+        "ms": {
+            "type": "object",
+            "properties": {
+                "client_mac": {"type": "string"},
+                "server_mac": {"type": "string"},
+                "cmd_topic": {"type": "string"},
+                "rsp_topic": {"type": "string"},
+                "timeout": {"type": "number"}
+            },
+            "required": ["client_mac", "server_mac", "cmd_topic", "rsp_topic", "timeout"]
         },
         "device": {
             "type": "object",
@@ -102,12 +118,22 @@ def merge_configs(defaults, config_file, config_cli):
         config['mqtt']['password'] = config_cli.mqtt_password
     if config_cli.mqtt_client_id:
         config['mqtt']['client_id'] = config_cli.mqtt_client_id
-    if config_cli.mqtt_mac_address:
-        config['mqtt']['mac_address'] = config_cli.mqtt_mac_address
     if config_cli.mqtt_timeout:
         config['mqtt']['timeout'] = config_cli.mqtt_timeout
     if config_cli.long_payload:
         config['mqtt']['long_payload'] = config_cli.long_payload
+
+    # handle ms protocol overrides
+    if config_cli.ms_client_mac:
+        config['ms']['client_mac'] = config_cli.ms_client_mac
+    if config_cli.ms_server_mac:
+        config['ms']['server_mac'] = config_cli.ms_server_mac
+    if config_cli.ms_cmd_topic:
+        config['ms']['cmd_topic'] = config_cli.ms_cmd_topic
+    if config_cli.ms_rsp_topic:
+        config['ms']['rsp_topic'] = config_cli.ms_rsp_topic
+    if config_cli.ms_timeout:
+        config['ms']['timeout'] = config_cli.ms_timeout
 
     # Handle Device CLI overrides
     if config_cli.device_name:
@@ -120,6 +146,10 @@ def merge_configs(defaults, config_file, config_cli):
     # Handle general options
     if config_cli.verbose is not None:
         config['verbose'] = config_cli.verbose
+
+    # Print verbose mode status
+    if config.get('verbose'):
+        log_configuration(config)
 
     return config
 
@@ -143,3 +173,35 @@ def deep_update(config: Dict[str, Any], config_file: Dict[str, Any]) -> None:
         else:
             # Otherwise, update the key with the new value from config_file
             config[key] = value
+
+def log_configuration(config):
+    logger.info("Running in verbose mode.")
+    logger.info(f"Final Configuration: {config}")
+
+    # MQTT configuration
+    mqtt_config = config['mqtt']
+    logger.info(f"MQTT Configuration:")
+    logger.info(f"  Host: {mqtt_config['host']}")
+    logger.info(f"  Port: {mqtt_config['port']}")
+    logger.info(f"  Username: {mqtt_config.get('username', 'N/A')}")
+    logger.info(f"  Password: {mqtt_config.get('password', 'N/A')}")
+    logger.info(f"  Client ID: {mqtt_config.get('client_id', 'N/A')}")
+    logger.info(f"  Timeout: {mqtt_config.get('timeout', 'N/A')}")
+    logger.info(f"  Long payloads threshold: {mqtt_config.get('long_payload', 'N/A')}")
+
+    ms_config = config['ms']
+    logger.info(f"MS Configuration")
+    logger.info(f"  Client (master) MAC: {ms_config.get('client_mac', 'N/A')}")
+    logger.info(f"  Server (slave) MAC:  {ms_config.get('server_mac', 'N/A')}")
+    logger.info(f"  Command topic:  {ms_config.get('cmd_topic', 'N/A')}")
+    logger.info(f"  Response topic: {ms_config.get('rsp_topic', 'N/A')}")
+    logger.info(f"  MS protocol timeout: {ms_config.get('timeout', 'N/A')}")
+
+    # Device configuration
+    device_config = config['device']
+    logger.info(f"Device Configuration:")
+    logger.info(f"  Device Name: {device_config['name']}")
+    logger.info(f"  Timeout: {device_config['timeout']} seconds")
+    logger.info(f"  Port: {device_config['port']}")
+
+    logger.info("Application started with the above configuration...")
