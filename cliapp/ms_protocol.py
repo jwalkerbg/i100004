@@ -11,7 +11,7 @@ import random
 from cliapp.logger_module import logger, string_handler
 from cliapp.mqtt_handler import MQTTHandler
 
-class CommandProtocol:
+class MSProtocol:
     def __init__(self, config):
         """
         Initialize the command protocol with MQTTHandler and device MAC addresses.

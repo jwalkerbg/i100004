@@ -9,14 +9,14 @@ import re
 from typing import Dict, Tuple, Any
 from cliapp.logger_module import logger, string_handler
 from cliapp.mqtt_handler import MQTTHandler
-from cliapp.ms_protocol import CommandProtocol
+from cliapp.ms_protocol import MSProtocol
 
 class MQTTDispatcher:
-    def __init__(self, config: Dict, protocol:CommandProtocol = None):
+    def __init__(self, config: Dict, protocol:MSProtocol = None):
         self.config = config
         self.ms_protocol = protocol
 
-    def define_ms_protocol(self, protocol:CommandProtocol = None) -> None:
+    def define_ms_protocol(self, protocol:MSProtocol = None) -> None:
         self.ms_protocol = protocol
 
     def match_mqtt_topic_for_ms(self, topic: str) -> bool:

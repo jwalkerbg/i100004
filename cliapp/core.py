@@ -4,7 +4,7 @@ import time
 import struct
 from cliapp.mqtt_handler import MQTTHandler
 from cliapp.logger_module import logger, string_handler
-from cliapp.ms_protocol import CommandProtocol
+from cliapp.ms_protocol import MSProtocol
 from cliapp.mqtt_dispatcher import MQTTDispatcher
 from cliapp.ms_host import MShost
 
@@ -12,7 +12,7 @@ def run_app(config):
     """Run the application with the given configuration."""
 
     try:
-        ms_protocol = CommandProtocol(config=config)
+        ms_protocol = MSProtocol(config=config)
         mqtt_dispatcher = MQTTDispatcher(config=config, protocol=ms_protocol)
         mqtt_handler = MQTTHandler(config=config,message_handler=mqtt_dispatcher)
         ms_protocol.define_mqtt_handler(mqtt_handler)   # needed for publishing commands
@@ -96,6 +96,6 @@ def run_app(config):
         #mqtt_handler.disconnect_and_exit()
         logger.warning("Application stopped by user (Ctrl-C). Exiting...")
 
-def gracefull_exit(protocol: CommandProtocol,mqtthandler: MQTTHandler):
+def gracefull_exit(protocol: MSProtocol,mqtthandler: MQTTHandler):
         protocol.put_command(None)
         mqtthandler.disconnect_and_exit()
