@@ -19,7 +19,7 @@ class MSProtocol:
         Parameters:
         - mqtt_handler: An instance of the existing MQTTHandler class that manages the connection.
         - master_mac: MAC address of the master device (this device).
-        - slave_mac: MAC address of the slave device (the target device).
+        - slave_mac: MAC address of the slave device (the server device).
         - command_timeout: Timeout in seconds to wait for a response from the slave.
         """
         self.mqtt_handler = None

@@ -15,10 +15,5 @@
         "rsp_topic": "@/client_mac/RSP/format",
         "timeout": 5.0
     },
-    "device": {
-        "name": "DeviceName",
-        "port": "ttyUSB0",
-        "timeout": 30
-    },
     "verbose": false
 }

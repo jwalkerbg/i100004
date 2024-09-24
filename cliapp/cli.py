@@ -5,7 +5,7 @@ from cliapp.config import load_config, merge_configs, DEFAULT_CONFIG
 from cliapp.logger_module import logger, string_handler
 
 def parse_args():
-    """Parse command-line arguments, including nested options for mqtt and device."""
+    """Parse command-line arguments, including nested options for mqtt and MS Protocol."""
     parser = argparse.ArgumentParser(description='My CLI App with Config File and Overrides')
 
     # MQTT options
@@ -23,11 +23,6 @@ def parse_args():
     parser.add_argument("--ms-cmd-topic", type=str, dest='ms_cmd_topic', help="Template of command topic.")
     parser.add_argument("--ms-rsp-topic", type=str, dest='ms_rsp_topic', help="Template of response topic.")
     parser.add_argument("--ms-timeout", type=float, dest='ms_timeout', help="Timeout used in protocol to wait for response.")
-
-    # Device options
-    parser.add_argument('--device-name', type=str, help='Name of the device under test')
-    parser.add_argument('--device-port', type=str, help='Port used to connect to the device (e.g., ttyUSB0)')
-    parser.add_argument('--device-timeout', type=int, help='Device connection timeout in seconds')
 
     # Other general options can still be added
     verbosity_group = parser.add_mutually_exclusive_group()

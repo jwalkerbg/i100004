@@ -22,11 +22,6 @@ DEFAULT_CONFIG = {
         'rsp_topic': '@/client_mac/RSP/format',
         'timeout': 5.0
     },
-    'device': {
-        'name': 'UnknownDevice',
-        'protocol': 'ttyUSB0',
-        'timeout': 30
-    },
     'verbose': False
 }
 
@@ -58,18 +53,9 @@ CONFIG_SCHEMA = {
             },
             "required": ["client_mac", "server_mac", "cmd_topic", "rsp_topic", "timeout"]
         },
-        "device": {
-            "type": "object",
-            "properties": {
-                "name": {"type": "string"},
-                "port": {"type": "string"},
-                "timeout": {"type": "integer", "minimum": 1, "maximum": 600}
-            },
-            "required": ["name"]
-        },
         "verbose": {"type": "boolean"}
     },
-    "required": ["mqtt", "device"],
+    "required": ["mqtt", "ms"],
     "additionalProperties": False
 }
 
@@ -135,14 +121,6 @@ def merge_configs(defaults, config_file, config_cli):
     if config_cli.ms_timeout:
         config['ms']['timeout'] = config_cli.ms_timeout
 
-    # Handle Device CLI overrides
-    if config_cli.device_name:
-        config['device']['name'] = config_cli.device_name
-    if config_cli.device_port:
-        config['device']['port'] = config_cli.device_port
-    if config_cli.device_timeout:
-        config['device']['timeout'] = config_cli.device_timeout
-
     # Handle general options
     if config_cli.verbose is not None:
         config['verbose'] = config_cli.verbose
@@ -196,12 +174,5 @@ def log_configuration(config):
     logger.info(f"  Command topic:  {ms_config.get('cmd_topic', 'N/A')}")
     logger.info(f"  Response topic: {ms_config.get('rsp_topic', 'N/A')}")
     logger.info(f"  MS protocol timeout: {ms_config.get('timeout', 'N/A')}")
-
-    # Device configuration
-    device_config = config['device']
-    logger.info(f"Device Configuration:")
-    logger.info(f"  Device Name: {device_config['name']}")
-    logger.info(f"  Timeout: {device_config['timeout']} seconds")
-    logger.info(f"  Port: {device_config['port']}")
 
     logger.info("Application started with the above configuration...")
