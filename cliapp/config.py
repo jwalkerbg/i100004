@@ -59,10 +59,15 @@ CONFIG_SCHEMA = {
     "additionalProperties": False
 }
 
-def load_config(file_path='config.json'):
+def load_config(file_path: str='config.json'):
+    # Convert None to default value of 'config.json'
+    if file_path is None:
+        logger.info(f"CFG: Using default '{file_path}'")
+        file_path = 'config.json'
+
     """Load the configuration from a JSON file, handle errors if the file is missing or invalid."""
     if not os.path.exists(file_path):
-        logger.warning(f"Configuration file {file_path} not found, using default values.")
+        logger.warning(f"CFG: Configuration file {file_path} not found, using default values.")
         return {}
 
     try:
@@ -71,22 +76,22 @@ def load_config(file_path='config.json'):
 
         # Step 2: Validate the loaded config against the schema
         validate(instance=config, schema=CONFIG_SCHEMA)
-        return config
+        return config   # no exception, valid configuration file
 
     except FileNotFoundError:
-        logger.warning(f"Configuration file {file_path} not found, using default values.")
+        logger.warning(f"CFG: Configuration file {file_path} not found, using default values.")
         return {}
 
     except json.JSONDecodeError as e:
-        raise ValueError(f"Invalid JSON format in {file_path}: {e}")
+        raise ValueError(f"CFG: Invalid JSON format in {file_path}: {e}")
 
     except ValidationError as e:
-        raise ValueError(f"Configuration validation error in {file_path}: {e.message}")
+        raise ValueError(f"CFG: Configuration validation error in {file_path}: {e.message}")
 
     except Exception as e:
-        raise RuntimeError(f"Failed to load configuration from {file_path}: {e}")
+        raise RuntimeError(f"CFG: Failed to load configuration from {file_path}: {e}")
 
-def merge_configs(defaults, config_file, config_cli):
+def merge_configs(defaults, config_file, config_cli=None):
     """Merge default config, file config, and CLI config with precedence to CLI > file > default."""
     config = defaults.copy()  # Start with defaults
 
@@ -94,36 +99,37 @@ def merge_configs(defaults, config_file, config_cli):
     deep_update(config,config_file)
 
     # Handle MQTT CLI overrides
-    if config_cli.mqtt_host:
-        config['mqtt']['host'] = config_cli.mqtt_host
-    if config_cli.mqtt_port:
-        config['mqtt']['port'] = config_cli.mqtt_port
-    if config_cli.mqtt_username:
-        config['mqtt']['username'] = config_cli.mqtt_username
-    if config_cli.mqtt_password:
-        config['mqtt']['password'] = config_cli.mqtt_password
-    if config_cli.mqtt_client_id:
-        config['mqtt']['client_id'] = config_cli.mqtt_client_id
-    if config_cli.mqtt_timeout:
-        config['mqtt']['timeout'] = config_cli.mqtt_timeout
-    if config_cli.long_payload:
-        config['mqtt']['long_payload'] = config_cli.long_payload
+    if config_cli:
+        if config_cli.mqtt_host:
+            config['mqtt']['host'] = config_cli.mqtt_host
+        if config_cli.mqtt_port:
+            config['mqtt']['port'] = config_cli.mqtt_port
+        if config_cli.mqtt_username:
+            config['mqtt']['username'] = config_cli.mqtt_username
+        if config_cli.mqtt_password:
+            config['mqtt']['password'] = config_cli.mqtt_password
+        if config_cli.mqtt_client_id:
+            config['mqtt']['client_id'] = config_cli.mqtt_client_id
+        if config_cli.mqtt_timeout:
+            config['mqtt']['timeout'] = config_cli.mqtt_timeout
+        if config_cli.long_payload:
+            config['mqtt']['long_payload'] = config_cli.long_payload
 
-    # handle ms protocol overrides
-    if config_cli.ms_client_mac:
-        config['ms']['client_mac'] = config_cli.ms_client_mac
-    if config_cli.ms_server_mac:
-        config['ms']['server_mac'] = config_cli.ms_server_mac
-    if config_cli.ms_cmd_topic:
-        config['ms']['cmd_topic'] = config_cli.ms_cmd_topic
-    if config_cli.ms_rsp_topic:
-        config['ms']['rsp_topic'] = config_cli.ms_rsp_topic
-    if config_cli.ms_timeout:
-        config['ms']['timeout'] = config_cli.ms_timeout
+        # handle ms protocol overrides
+        if config_cli.ms_client_mac:
+            config['ms']['client_mac'] = config_cli.ms_client_mac
+        if config_cli.ms_server_mac:
+            config['ms']['server_mac'] = config_cli.ms_server_mac
+        if config_cli.ms_cmd_topic:
+            config['ms']['cmd_topic'] = config_cli.ms_cmd_topic
+        if config_cli.ms_rsp_topic:
+            config['ms']['rsp_topic'] = config_cli.ms_rsp_topic
+        if config_cli.ms_timeout:
+            config['ms']['timeout'] = config_cli.ms_timeout
 
-    # Handle general options
-    if config_cli.verbose is not None:
-        config['verbose'] = config_cli.verbose
+        # Handle general options
+        if config_cli.verbose is not None:
+            config['verbose'] = config_cli.verbose
 
     # Print verbose mode status
     if config.get('verbose'):
