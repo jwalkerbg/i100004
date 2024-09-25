@@ -35,7 +35,7 @@ def run_app(config: Dict):
             return
     except Exception as e:
         logger.error(f"Cannot connect to the MQTT broker: {e}")
-        gracefull_exit(ms_protocol, mqtt_handler)
+        graceful_exit(ms_protocol, mqtt_handler)
         return
 
     # subscribe for MS protocol
@@ -43,11 +43,11 @@ def run_app(config: Dict):
         res = ms_protocol.subscribe(ms_protocol.construct_rsp_topic())
         if not res:
             logger.warning(f"CORE: Not successful subscription. Giving up")
-            gracefull_exit(ms_protocol,mqtt_handler)
+            graceful_exit(ms_protocol,mqtt_handler)
             return
     except Exception as e:
         logger.error(f"Cannot subscribe to the MQTT broker: {e}")
-        gracefull_exit(ms_protocol,mqtt_handler)
+        graceful_exit(ms_protocol,mqtt_handler)
         return
 
     ms_host = MShost(ms_protocol=ms_protocol,config=config)
@@ -97,14 +97,14 @@ def run_app(config: Dict):
             time.sleep(5)  # Sleep to avoid busy-waiting
     except KeyboardInterrupt:
         # Graceful exit on Ctrl-C
-        gracefull_exit(ms_protocol,mqtt_handler)
+        graceful_exit(ms_protocol,mqtt_handler)
         #ms_protocol.queue_cmd.put((None, None))
         #mqtt_handler.disconnect_and_exit()
         logger.warning("Application stopped by user (Ctrl-C). Exiting...")
 
-def gracefull_exit(protocol: MSProtocol,mqtthandler: MQTTHandler):
+def graceful_exit(protocol: MSProtocol,mqtthandler: MQTTHandler):
         if protocol:
-            protocol.put_command(None)
+            protocol.graceful_exit()
         if mqtthandler:
             mqtthandler.disconnect_and_exit()
 
