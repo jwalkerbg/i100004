@@ -97,5 +97,9 @@ def run_app(config):
         logger.warning("Application stopped by user (Ctrl-C). Exiting...")
 
 def gracefull_exit(protocol: MSProtocol,mqtthandler: MQTTHandler):
-        protocol.put_command(None)
-        mqtthandler.disconnect_and_exit()
+        if protocol:
+            protocol.put_command(None)
+        if mqtthandler:
+            mqtthandler.disconnect_and_exit()
+
+def run_module(config: Dict=DEFAULT_CONFIG, file_path: str=None):
