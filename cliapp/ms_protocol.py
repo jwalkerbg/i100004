@@ -268,3 +268,8 @@ class MSProtocol:
         except jsonschema.exceptions.ValidationError as err:
             logger.info(f"JSON data is invalid: {err.message}")
             return False
+
+    def graceful_exit(self) -> None:
+        self.put_command(None)
+        self.command_thread.join()
+        logger.info(f"MS: graceful exited")
