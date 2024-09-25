@@ -11,6 +11,10 @@ from cliapp.ms_host import MShost
 def run_app(config):
     """Run the application with the given configuration."""
 
+    ms_protocol = None
+    mqtt_dispatcher = None
+    mqtt_handler = None
+
     try:
         ms_protocol = MSProtocol(config=config)
         mqtt_dispatcher = MQTTDispatcher(config=config, protocol=ms_protocol)
@@ -18,7 +22,8 @@ def run_app(config):
         ms_protocol.define_mqtt_handler(mqtt_handler)   # needed for publishing commands
     except Exception as e:
         logger.error(f"Cannot create MQTTHandler object: {e}")
-        mqtt_handler.exit_threads()
+        if mqtt_handler:
+            mqtt_handler.exit_threads()
         return
 
     # connect broker
@@ -29,7 +34,7 @@ def run_app(config):
             return
     except Exception as e:
         logger.error(f"Cannot connect to the MQTT broker: {e}")
-        mqtt_handler.exit_threads()
+        gracefull_exit(ms_protocol, mqtt_handler)
         return
 
     # subscribe for MS protocol
@@ -37,7 +42,7 @@ def run_app(config):
         res = ms_protocol.subscribe(ms_protocol.construct_rsp_topic())
         if not res:
             logger.warning(f"CORE: Not successful subscription. Giving up")
-            mqtt_handler.exit_threads()
+            gracefull_exit(ms_protocol,mqtt_handler)
             return
     except Exception as e:
         logger.error(f"Cannot subscribe to the MQTT broker: {e}")
