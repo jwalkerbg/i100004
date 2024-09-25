@@ -4,7 +4,6 @@ import time
 import json
 import struct
 from cliapp.logger_module import logger, string_handler
-from cliapp.mqtt_handler import MQTTHandler
 from cliapp.ms_protocol import MSProtocol
 
 class MShost:
