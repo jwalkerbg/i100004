@@ -2,13 +2,14 @@
 
 import time
 import struct
+from typing import Dict
 from cliapp.mqtt_handler import MQTTHandler
 from cliapp.logger_module import logger, string_handler
 from cliapp.ms_protocol import MSProtocol
 from cliapp.mqtt_dispatcher import MQTTDispatcher
 from cliapp.ms_host import MShost
 
-def run_app(config):
+def run_app(config: Dict):
     """Run the application with the given configuration."""
 
     ms_protocol = None
