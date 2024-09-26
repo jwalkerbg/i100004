@@ -3,6 +3,7 @@
 import time
 import struct
 from typing import Dict
+from cliapp.config import load_config, merge_configs, DEFAULT_CONFIG
 from cliapp.mqtt_handler import MQTTHandler
 from cliapp.logger_module import logger, string_handler
 from cliapp.ms_protocol import MSProtocol
@@ -109,3 +110,19 @@ def graceful_exit(protocol: MSProtocol,mqtthandler: MQTTHandler):
             mqtthandler.disconnect_and_exit()
 
 def run_module(config: Dict=DEFAULT_CONFIG, file_path: str=None):
+    # Step 0: Log the beginning
+    logger.info("module start")
+
+    # Step 1: Load default values from the module
+    defaults = DEFAULT_CONFIG
+
+    # Step 2: Load the default configuration from config.json
+    config_file = load_config(file_path)
+
+    # Step 3: Merge default config, config.json, and command-line arguments
+    final_config = merge_configs(defaults, config_file)
+
+    # Step 4: Run the application using the final configuration
+    run_app(final_config)
+
+    logger.info(f"module end")
