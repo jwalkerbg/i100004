@@ -1,6 +1,6 @@
 # tests/test_cli.py
 import unittest
-#from cliapp.cli import parse_args
+#from mqttms.cli import parse_args
 
 class TestCLI(unittest.TestCase):
     def test_parse_args(self):

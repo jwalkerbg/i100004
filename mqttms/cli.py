@@ -1,8 +1,8 @@
 import argparse
 
-from cliapp.core import run_app
-from cliapp.config import load_config, merge_configs, DEFAULT_CONFIG
-from cliapp.logger_module import logger, string_handler
+from mqttms.core import run_app
+from mqttms.config import load_config, merge_configs, DEFAULT_CONFIG
+from mqttms.logger_module import logger, string_handler
 
 def parse_args():
     """Parse command-line arguments, including nested options for mqtt and MS Protocol."""
@@ -35,7 +35,7 @@ def main():
     """Main entry point of the CLI."""
 
     # Step 0: Log the beginning
-    logger.info("cliapp beginning")
+    logger.info("mqttms beginning")
 
     # Step 1: Load default values from the module
     defaults = DEFAULT_CONFIG
@@ -53,7 +53,7 @@ def main():
     run_app(final_config)
 
     # Step 6: Final message
-    logger.info("cliapp end")
+    logger.info("mqttms end")
 
 if __name__ == "__main__":
     main()

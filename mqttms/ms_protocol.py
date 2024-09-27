@@ -8,8 +8,8 @@ import rfc3986
 import queue
 import struct
 import random
-from cliapp.logger_module import logger, string_handler
-from cliapp.mqtt_handler import MQTTHandler
+from mqttms.logger_module import logger, string_handler
+from mqttms.mqtt_handler import MQTTHandler
 
 class MSProtocol:
     def __init__(self, config):

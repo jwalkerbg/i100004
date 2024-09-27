@@ -1,14 +1,14 @@
-# cliapp/core.py
+# mqttms/core.py
 
 import time
 import struct
 from typing import Dict
-from cliapp.config import load_config, merge_configs, DEFAULT_CONFIG
-from cliapp.mqtt_handler import MQTTHandler
-from cliapp.logger_module import logger, string_handler
-from cliapp.ms_protocol import MSProtocol
-from cliapp.mqtt_dispatcher import MQTTDispatcher
-from cliapp.ms_host import MShost
+from mqttms.config import load_config, merge_configs, DEFAULT_CONFIG
+from mqttms.mqtt_handler import MQTTHandler
+from mqttms.logger_module import logger, string_handler
+from mqttms.ms_protocol import MSProtocol
+from mqttms.mqtt_dispatcher import MQTTDispatcher
+from mqttms.ms_host import MShost
 
 def run_app(config: Dict):
     """Run the application with the given configuration."""

@@ -40,7 +40,7 @@ By default, the application looks for a `config.json` file in the current direct
 
 You can override any of the settings from ```config.json``` by passing arguments directly in the CLI. For example:
 
-```python cliapp/cli.py --mqtt-host mqtt.example.com --verbose```
+```python mqttms/cli.py --mqtt-host mqtt.example.com --verbose```
 
 ## Configuration Options
 
@@ -71,13 +71,13 @@ General Settings
 
 To run the application with default settings or using ```config.json```:
 
-```python cliapp/cli.py```
+```python mqttms/cli.py```
 
 ### Overriding Configuration via Command-Line Arguments
 
 You can override specific settings from ```config.json``` using command-line options:
 
-```python cliapp/cli.py --mqtt-host mqtt.example.com --verbose```
+```python mqttms/cli.py --mqtt-host mqtt.example.com --verbose```
 
 This command will:
 
@@ -88,11 +88,11 @@ This command will:
 
 Verbose mode provides detailed output, including the final merged configuration and runtime behavior. To enable it:
 
-```python cliapp/cli.py --verbose```
+```python mqttms/cli.py --verbose```
 
 Example:
 
-```python cliapp/cli.py --mqtt-host mqtt.myserver.com```
+```python mqttms/cli.py --mqtt-host mqtt.myserver.com```
 
 Output:
 

@@ -3,8 +3,8 @@
 import time
 import json
 import struct
-from cliapp.logger_module import logger, string_handler
-from cliapp.ms_protocol import MSProtocol
+from mqttms.logger_module import logger, string_handler
+from mqttms.ms_protocol import MSProtocol
 
 class MShost:
     def __init__(self, ms_protocol: MSProtocol, config):

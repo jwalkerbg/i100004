@@ -1,4 +1,4 @@
-# cliapp/__main__.py
+# mqttms/__main__.py
 
 from .cli import main
 

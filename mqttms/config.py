@@ -2,7 +2,7 @@ import os
 from typing import Dict, Any  # Import only the necessary types
 import json
 from jsonschema import validate, ValidationError
-from cliapp.logger_module import logger, string_handler
+from mqttms.logger_module import logger, string_handler
 
 # Step 1: Define default values (hardcoded in the module)
 DEFAULT_CONFIG = {
