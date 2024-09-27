@@ -11,4 +11,4 @@ class AbstractMQTTDispatcher(ABC):
 
     @abstractmethod
     def handle_message(self, message: Tuple[str, str]) -> bool:
-        pass
+        return False
