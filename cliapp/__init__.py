@@ -1,3 +1,3 @@
 # cliapp/__init__.py
 
-from .core import run_app
+from .core import run_app, run_module

@@ -2,16 +2,16 @@
 
 ## Overview
 
-This application is a flexible CLI and Python module that allows users to configure MQTT and device settings using either a `config.json` file or command-line arguments. It supports nested configurations and provides verbose logging for debugging.
+This application is a flexible CLI and Python module that allows users to configure MQTT and MS protocol settings using either a `config.json` file or command-line arguments. It supports nested configurations and provides verbose logging for debugging.
 
-The application is designed to connect to an MQTT broker and interact with a device under test (DUT). The settings for both MQTT and the device can be overridden via the CLI, allowing easy configuration for different environments.
+The application is designed to connect to an MQTT broker and interact with a server under test (DUT). The settings for both MQTT and the device can be overridden via the CLI, allowing easy configuration for different environments.
 
 Note: MQTT configuration is included in this version, however real MQTT communication is still missing.
 
 ## Features
 
 - **MQTT Configuration**: Host, port, username, and password.
-- **Device Configuration**: Device name, port, and timeout.
+- **MS Protocol**: Client and server MAC addresses, MQTT topics etc
 - **Command-Line Overrides**: You can override configuration values specified in `config.json` directly from the command line.
 - **Verbose Mode**: The application can run in verbose mode to provide detailed logging of the configuration and runtime behavior.
 
@@ -33,11 +33,6 @@ By default, the application looks for a `config.json` file in the current direct
         "username": "user",
         "password": "pass"
     },
-    "device": {
-        "name": "Device001",
-        "port": "ttyUSB1",
-        "timeout": 30
-    }
 }
 ```
 
@@ -45,7 +40,7 @@ By default, the application looks for a `config.json` file in the current direct
 
 You can override any of the settings from ```config.json``` by passing arguments directly in the CLI. For example:
 
-```python cliapp/cli.py --mqtt-host mqtt.example.com --device-name Device001 --device-port /dev/ttyS0 --verbose```
+```python cliapp/cli.py --mqtt-host mqtt.example.com --verbose```
 
 ## Configuration Options
 
@@ -56,11 +51,14 @@ You can override any of the settings from ```config.json``` by passing arguments
 * ```--mqtt-username```: The username for MQTT authentication (default: ```guest```).
 * ```--mqtt-password```: The password for MQTT authentication (default: ```guest```).
 
-### Device Settings
+### MS Protocol Settings
 
-* ```--device-name```: The name of the device under test (default: ```UnknownDevice```).
-* ```--device-port```: The port where the device is connected (default: ```ttyUSB0```).
-* ```--device-timeout```: The timeout duration (in seconds) for device connections (default: ```30``` seconds).
+* ```client_mac```: Client MAC address without separators (':' or '-')
+* ```server_mac```: Server (slave) MAC address without separators (':' or '-')
+* ```cmd_topic```: MQTT topic template for commands
+* ```rsp_topic```: MQTT topic template for responses
+* ```timeout```: MS Protocol timeout in seconds (float number)
+
 
 General Settings
 
@@ -79,13 +77,11 @@ To run the application with default settings or using ```config.json```:
 
 You can override specific settings from ```config.json``` using command-line options:
 
-```python cliapp/cli.py --mqtt-host mqtt.example.com --device-name Device001 --device-port /dev/ttyS0 --verbose```
+```python cliapp/cli.py --mqtt-host mqtt.example.com --verbose```
 
 This command will:
 
 * Connect to the MQTT broker at ```mqtt.example.com```.
-* Use ```Device001``` as the name for the device under test.
-* Connect to the device via port ```/dev/ttyS0```.
 * Enable verbose mode.
 
 ### Verbose Mode
@@ -96,7 +92,7 @@ Verbose mode provides detailed output, including the final merged configuration 
 
 Example:
 
-```python cliapp/cli.py --device-name MyDevice --device-port /dev/ttyUSB2 --mqtt-host mqtt.myserver.com```
+```python cliapp/cli.py --mqtt-host mqtt.myserver.com```
 
 Output:
 
@@ -106,11 +102,6 @@ MQTT Configuration:
   Port: 1883
   Username: guest
   Password: guest
-
-Device Configuration:
-  Device Name: MyDevice
-  Port: /dev/ttyUSB2
-  Timeout: 30 seconds
 
 Application started with the above configuration...
 ```
@@ -129,16 +120,22 @@ If you need to use a different ```config.json``` file, you can create a ```confi
 ```json
 {
     "mqtt": {
-        "host": "localhost",
+        "host": "broker.emqx.io",
         "port": 1883,
-        "username": "guest",
-        "password": "guest"
+        "username": "",
+        "password": "",
+        "client_id": "client_394578",
+        "timeout": 30.0,
+        "long_payload": 25
     },
-    "device": {
-        "name": "Device001",
-        "port": "ttyUSB0",
-        "timeout": 30
-    }
+    "ms": {
+        "client_mac": "1234567890A1",
+        "server_mac": "F412FACEF2E8",
+        "cmd_topic": "@/server_mac/CMD/format",
+        "rsp_topic": "@/client_mac/RSP/format",
+        "timeout": 5.0
+    },
+    "verbose": false
 }
 ```
 
@@ -158,6 +155,10 @@ To add a new configuration section:
 ## Contributing
 
 Feel free to fork this project and submit pull requests. All contributions are welcome!
+
+## How to make importable module
+
+
 
 ## License
 

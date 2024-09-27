@@ -1,20 +1,18 @@
 # mqtt_dispatcher.py
 
-import time
-import json
-import threading
-import queue
-import struct
 import re
 from typing import Dict, Tuple, Any
+from abc import ABC, abstractmethod
+from cliapp.abstract_dispatcher import AbstractMQTTDispatcher
 from cliapp.logger_module import logger, string_handler
-from cliapp.mqtt_handler import MQTTHandler
+# from cliapp.mqtt_handler import MQTTHandler
 from cliapp.ms_protocol import MSProtocol
 
-class MQTTDispatcher:
+class MQTTDispatcher(AbstractMQTTDispatcher):
     def __init__(self, config: Dict, protocol:MSProtocol = None):
-        self.config = config
+        super().__init__(config)
         self.ms_protocol = protocol
+        logger.info(f"MQTTDispatcher __init__")
 
     def define_ms_protocol(self, protocol:MSProtocol = None) -> None:
         self.ms_protocol = protocol
@@ -40,7 +38,7 @@ class MQTTDispatcher:
         # Check if the given topic matches the regex pattern
         return bool(re.match(pattern, topic))
 
-    def handle_message(self, message: Tuple[str, str]) -> None:
+    def handle_message(self, message: Tuple[str, str]) -> bool:
         """
         Handles an incoming MQTT message, processes the topic, and dispatches based on matching protocols.
 
@@ -48,11 +46,13 @@ class MQTTDispatcher:
             message (Tuple[str, str]): A tuple containing the topic (str) and payload (str).
 
         Returns:
-            None: This function does not return anything.
+            Return True if the message is handled
         """
         logger.info(f"handle_message: -t '{message[0]}' -m '{message[1]}'")
 
         if self.match_mqtt_topic_for_ms(message[0]):
             self.ms_protocol.put_response(message)
-            return
+            return True
         # here more dispatcher options may be added if necessary
+
+        return False

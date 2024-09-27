@@ -2,14 +2,20 @@
 
 import time
 import struct
+from typing import Dict
+from cliapp.config import load_config, merge_configs, DEFAULT_CONFIG
 from cliapp.mqtt_handler import MQTTHandler
 from cliapp.logger_module import logger, string_handler
 from cliapp.ms_protocol import MSProtocol
 from cliapp.mqtt_dispatcher import MQTTDispatcher
 from cliapp.ms_host import MShost
 
-def run_app(config):
+def run_app(config: Dict):
     """Run the application with the given configuration."""
+
+    ms_protocol = None
+    mqtt_dispatcher = None
+    mqtt_handler = None
 
     try:
         ms_protocol = MSProtocol(config=config)
@@ -18,7 +24,8 @@ def run_app(config):
         ms_protocol.define_mqtt_handler(mqtt_handler)   # needed for publishing commands
     except Exception as e:
         logger.error(f"Cannot create MQTTHandler object: {e}")
-        mqtt_handler.exit_threads()
+        if mqtt_handler:
+            mqtt_handler.exit_threads()
         return
 
     # connect broker
@@ -29,7 +36,7 @@ def run_app(config):
             return
     except Exception as e:
         logger.error(f"Cannot connect to the MQTT broker: {e}")
-        mqtt_handler.exit_threads()
+        graceful_exit(ms_protocol, mqtt_handler)
         return
 
     # subscribe for MS protocol
@@ -37,11 +44,11 @@ def run_app(config):
         res = ms_protocol.subscribe(ms_protocol.construct_rsp_topic())
         if not res:
             logger.warning(f"CORE: Not successful subscription. Giving up")
-            mqtt_handler.exit_threads()
+            graceful_exit(ms_protocol,mqtt_handler)
             return
     except Exception as e:
         logger.error(f"Cannot subscribe to the MQTT broker: {e}")
-        gracefull_exit(ms_protocol,mqtt_handler)
+        graceful_exit(ms_protocol,mqtt_handler)
         return
 
     ms_host = MShost(ms_protocol=ms_protocol,config=config)
@@ -91,11 +98,31 @@ def run_app(config):
             time.sleep(5)  # Sleep to avoid busy-waiting
     except KeyboardInterrupt:
         # Graceful exit on Ctrl-C
-        gracefull_exit(ms_protocol,mqtt_handler)
+        graceful_exit(ms_protocol,mqtt_handler)
         #ms_protocol.queue_cmd.put((None, None))
         #mqtt_handler.disconnect_and_exit()
         logger.warning("Application stopped by user (Ctrl-C). Exiting...")
 
-def gracefull_exit(protocol: MSProtocol,mqtthandler: MQTTHandler):
-        protocol.put_command(None)
-        mqtthandler.disconnect_and_exit()
+def graceful_exit(protocol: MSProtocol,mqtthandler: MQTTHandler):
+        if protocol:
+            protocol.graceful_exit()
+        if mqtthandler:
+            mqtthandler.disconnect_and_exit()
+
+def run_module(config: Dict=DEFAULT_CONFIG, file_path: str=None):
+    # Step 0: Log the beginning
+    logger.info("module start")
+
+    # Step 1: Load default values from the module
+    defaults = DEFAULT_CONFIG
+
+    # Step 2: Load the default configuration from config.json
+    config_file = load_config(file_path)
+
+    # Step 3: Merge default config, config.json, and command-line arguments
+    final_config = merge_configs(defaults, config_file)
+
+    # Step 4: Run the application using the final configuration
+    run_app(final_config)
+
+    logger.info(f"module end")
