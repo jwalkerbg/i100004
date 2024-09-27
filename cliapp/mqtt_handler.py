@@ -3,10 +3,11 @@ import json
 import threading
 import queue
 import paho.mqtt.client as mqtt
+from cliapp.abstract_dispatcher import AbstractMQTTDispatcher
 from cliapp.logger_module import logger, string_handler
 
 class MQTTHandler:
-    def __init__(self, config, message_handler=None):
+    def __init__(self, config, message_handler:AbstractMQTTDispatcher=None):
         self.config = config
         self.client = mqtt.Client(callback_api_version=mqtt.CallbackAPIVersion.VERSION2,client_id=self.config['mqtt']['client_id'],protocol=mqtt.MQTTv5)
 
@@ -46,7 +47,7 @@ class MQTTHandler:
         self.mqtt_receive_thread = threading.Thread(target=self.receive_mqtt_message, args=((self, self.queue_rec)))
         self.mqtt_receive_thread.start()
 
-    def define_message_handler(self, handler=None) -> None:
+    def define_message_handler(self, handler:AbstractMQTTDispatcher=None) -> None:
         """
         Assigns a custom message handler function to handle incoming MQTT messages.
 
