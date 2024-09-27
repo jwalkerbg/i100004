@@ -3,7 +3,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='cliapp',
+    name='mqttms',
     version='0.5.1',
     description='A sample Python project with CLI and importable module',
     author='Ivan Cenov',
@@ -16,7 +16,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'cliapp=cliapp.cli:main',
+            'mqttms=mqttms.cli:main',
         ],
     },
     classifiers=[
