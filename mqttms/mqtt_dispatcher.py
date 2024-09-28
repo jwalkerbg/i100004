@@ -4,9 +4,8 @@ import re
 from typing import Dict, Tuple, Any
 from abc import ABC, abstractmethod
 from mqttms.abstract_dispatcher import AbstractMQTTDispatcher
-from mqttms.logger_module import logger, string_handler
-# from mqttms.mqtt_handler import MQTTHandler
 from mqttms.ms_protocol import MSProtocol
+from mqttms.logger_module import logger
 
 class MQTTDispatcher(AbstractMQTTDispatcher):
     def __init__(self, config: Dict, protocol:MSProtocol = None):

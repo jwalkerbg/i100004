@@ -2,7 +2,7 @@
 
 from typing import Dict, Tuple, Any
 from abc import ABC, abstractmethod
-from mqttms.logger_module import logger, string_handler
+from mqttms.logger_module import logger
 
 class AbstractMQTTDispatcher(ABC):
     def __init__(self, config: Dict):

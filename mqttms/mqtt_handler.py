@@ -4,7 +4,7 @@ import threading
 import queue
 import paho.mqtt.client as mqtt
 from mqttms.abstract_dispatcher import AbstractMQTTDispatcher
-from mqttms.logger_module import logger, string_handler
+from mqttms.logger_module import logger
 
 class MQTTHandler:
     def __init__(self, config, message_handler:AbstractMQTTDispatcher=None):
