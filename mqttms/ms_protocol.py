@@ -1,12 +1,9 @@
-import time
 import threading
 import re
 import json
 import jsonschema
 from jsonschema import validate, ValidationError, Draft7Validator, FormatChecker
-import rfc3986
 import queue
-import struct
 import random
 
 from mqttms.mqtt_handler import MQTTHandler
