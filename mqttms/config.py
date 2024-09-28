@@ -16,8 +16,8 @@ DEFAULT_CONFIG = {
         "long_payload": 25
     },
     'ms': {
-        'client_mac': '1234567890A1',
-        'server_mac': 'F412FACEF2E8',
+        'client_mac': '1234567890AB',
+        'server_mac': '112233445566',
         'cmd_topic': '@/server_mac/CMD/format',
         'rsp_topic': '@/client_mac/RSP/format',
         'timeout': 5.0
