@@ -2,12 +2,13 @@ import time
 import json
 import threading
 import queue
+from typing import Dict
 import paho.mqtt.client as mqtt
 from mqttms.abstract_dispatcher import AbstractMQTTDispatcher
 from mqttms.logger_module import logger
 
 class MQTTHandler:
-    def __init__(self, config, message_handler:AbstractMQTTDispatcher=None):
+    def __init__(self, config:Dict, message_handler:AbstractMQTTDispatcher=None):
         self.config = config
         self.client = mqtt.Client(callback_api_version=mqtt.CallbackAPIVersion.VERSION2,client_id=self.config['mqtt']['client_id'],protocol=mqtt.MQTTv5)
 
