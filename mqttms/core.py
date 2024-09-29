@@ -6,7 +6,7 @@ from mqttms.ms_protocol import MSProtocol
 from mqttms.logger_module import logger
 from mqttms.mqtt_dispatcher import MQTTDispatcher
 
-class MQTTMS:
+class MQTTms:
     def __init__(self, config:Dict, mqtt_dispatcher: MQTTDispatcher=None):
         '''
         Initialize objects
@@ -85,11 +85,11 @@ class MQTTMS:
         try:
             res = self.ms_protocol.subscribe(self.ms_protocol.construct_rsp_topic())
             if not res:
-                logger.warning(f"MQTTMS: Not successful subscription: {e}.")
+                logger.warning(f"MQTTms: Not successful subscription: {e}.")
                 return False
             return True
         except Exception as e:
-                logger.warning(f"MQTTMS: Not successful subscription: {e}.")
+                logger.warning(f"MQTTms: Not successful subscription: {e}.")
                 return False
 
     def graceful_exit(self) -> None:
