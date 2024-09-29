@@ -3,6 +3,7 @@ import re
 import json
 import jsonschema
 from jsonschema import validate, ValidationError, Draft7Validator, FormatChecker
+from typing import Dict
 import queue
 import random
 
@@ -10,7 +11,7 @@ from mqttms.mqtt_handler import MQTTHandler
 from mqttms.logger_module import logger
 
 class MSProtocol:
-    def __init__(self, config):
+    def __init__(self, config:Dict):
         """
         Initialize the command protocol with MQTTHandler and device MAC addresses.
 
