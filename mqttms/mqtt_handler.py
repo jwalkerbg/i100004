@@ -49,53 +49,12 @@ class MQTTHandler:
         self.mqtt_receive_thread.start()
 
     def define_message_handler(self, handler:AbstractMQTTDispatcher=None) -> None:
-        """
-        Assigns a custom message handler function to handle incoming MQTT messages.
-
-        Parameters:
-        - handler (object, optional): An object of a class that has a function that will be called when a message is received.
-        If no handler is provided (None), no custom handler will be set.
-        The function in the handler has name 'handle message'
-
-        Returns:
-        - None: This method does not return a value. It modifies the `self.message_handler` attribute.
-
-        Behavior:
-        - Stores the provided handler function in the `self.message_handler` attribute.
-        - The handler function should accept a single parameter, which is the message object (`msg`),
-        containing details about the received MQTT message.
-        """
         if hasattr(handler, 'handle_message') and callable(getattr(handler, 'handle_message')):
             self.message_handler = handler
         else:
             self.message_handler = None
 
     def exit_threads(self) -> None:
-        """
-        Gracefully exits the MQTT publish and receive threads by signaling them to stop and waiting for them to terminate.
-
-        Behavior:
-        - For the publish thread (`self.mqtt_publish_thread`):
-        - A tuple `(None, None)` is inserted into `self.queue_pub` to signal the thread to exit.
-        - The thread is then joined (i.e., the main thread waits for the publish thread to finish).
-
-        - For the receive thread (`self.mqtt_receive_thread`):
-        - A tuple `(None, None)` is inserted into `self.queue_rec` to signal the thread to exit.
-        - The thread is then joined (i.e., the main thread waits for the receive thread to finish).
-
-        Attributes:
-        - `self.queue_pub`: A `Queue` that holds messages to be published by the `self.mqtt_publish_thread`.
-        - `self.mqtt_publish_thread`: A thread that pulls messages from `self.queue_pub` and publishes them to the MQTT broker.
-
-        - `self.queue_rec`: A `Queue` that holds messages received from the MQTT broker to be processed by `self.mqtt_receive_thread`.
-        - `self.mqtt_receive_thread`: A thread that pulls messages from `self.queue_rec` and processes them, typically by calling `self.message_handler`.
-
-        Usage:
-        - This method should be called when the application needs to shut down or restart and you need to safely stop background threads.
-
-        Returns:
-        - None: This method does not return anything. It only ensures the threads are properly stopped.
-        """
         if self.mqtt_publish_thread:
             # Signal the publish thread to stop by putting (None, None) into the publish queue
             self.queue_pub.put((None, None))
@@ -109,35 +68,6 @@ class MQTTHandler:
             self.mqtt_receive_thread.join()
 
     def connect(self) -> bool:
-        """
-        Attempts to connect to the MQTT broker, synchronizing the connection process with a threading.Event object.
-
-        Behavior:
-        - Clears the `self.connection_established` event to indicate that a new connection attempt is starting.
-        - Calls `self.client.connect()` to initiate the connection to the broker.
-        - Starts the MQTT client loop in the background with `self.client.loop_start()`.
-        - Waits for the `self.connection_established` event to be set by the `on_connect()` callback within a timeout period.
-        - If the connection is established within the timeout, returns True. Otherwise, returns False.
-
-        Parameters:
-        - None
-
-        Returns:
-        - bool: True if the connection is successfully established, False if the connection times out or fails.
-
-        Process Flow:
-        1. The `self.connection_established` event is cleared to indicate that the client is not yet connected.
-        2. The `client.connect()` method is used to attempt to connect to the MQTT broker.
-        3. The `client.loop_start()` method is called to start the background loop that handles MQTT communication.
-        4. If an exception occurs during connection, an error message is logged and the method returns False.
-        5. The method waits for `self.connection_established` to be set by the `on_connect()` callback.
-        6. If the event is set within the timeout (from `self.config['mqtt']['timeout']`), the connection is considered successful, and the method returns True.
-        7. If the timeout expires without the event being set, it logs a warning and returns False.
-
-        Usage:
-        - This method is used to initiate the connection process to the MQTT broker and synchronize with the broker using the `on_connect()` callback.
-        - The method ensures that the connection is established within a specified time limit.
-        """
         host = self.config['mqtt']['host']
         port = self.config['mqtt']['port']
         logger.info(f"MQTT connecting to MQTT broker at {host}:{port}...")
@@ -169,27 +99,6 @@ class MQTTHandler:
             return False
 
     def on_connect(self, client: mqtt.Client, userdata: object, flags: dict, rc: int, properties: dict = None) -> None:
-        """
-        MQTT callback function that is triggered when the client connects to the broker.
-
-        Behavior:
-        - If the connection is successful (indicated by `rc == 0`), it logs a success message and sets the `self.connection_established` event to notify the `connect()` method that the connection was successful.
-        - If the connection fails (indicated by `rc != 0`), it logs an error message with the return code (rc).
-
-        Parameters:
-        - client (mqtt.Client): The MQTT client instance that is attempting to connect.
-        - userdata (object): User-defined data passed to callbacks (unused here).
-        - flags (dict): Response flags from the broker.
-        - rc (int): The connection result code. A value of 0 indicates a successful connection. Other values indicate errors.
-        - properties (dict, optional): MQTT 5.0 properties associated with the connection (unused here).
-
-        Returns:
-        - None: This is a callback method and does not return anything.
-
-        Usage:
-        - This method is automatically triggered by the Paho MQTT client when the connection status is received from the broker.
-        - It signals to the rest of the application (through `self.connection_established.set()`) that the connection has been successfully established, allowing the program to proceed.
-        """
         if rc == 0:
             # Connection was successful
             logger.info("MQTT connected to MQTT broker.")
@@ -201,26 +110,6 @@ class MQTTHandler:
             logger.info(f"MQTT failed to connect, return code {rc}")
 
     def disconnect_and_exit(self) -> None:
-        """
-        Cleanly disconnect from the MQTT broker and exit the publishing and receiving threads.
-
-        Behavior:
-        - Signals the publishing and receiving threads to stop by using `self.exit_threads()`.
-        - Attempts to disconnect from the MQTT broker, triggering the `on_disconnect()` callback if the disconnection is successful.
-        - Handles any exceptions that may occur during the disconnection process to ensure the program logs an error instead of crashing.
-
-        Steps:
-        1. Calls `exit_threads()` to stop the background threads responsible for publishing and receiving MQTT messages.
-        2. Calls `self.client.disconnect()` to initiate a clean disconnection from the MQTT broker.
-        This triggers the `on_disconnect()` callback once the client is successfully disconnected.
-
-        Logging Behavior:
-        - Logs the start of the shutdown process and confirms disconnection and thread termination.
-        - If an error occurs during disconnection, it logs the error but does not stop the program from continuing the shutdown process.
-
-        Returns:
-        - None: This function ensures a clean shutdown of the MQTT client and associated threads without returning a value.
-        """
         logger.info("MQTT initiating clean shutdown...")
 
         # Step 1: Unsubscribe all topics
@@ -246,32 +135,6 @@ class MQTTHandler:
         logger.info("MQTT clean shutdown complete.")
 
     def on_disconnect(self, client: mqtt.Client, userdata: object, rc: int) -> None:
-        """
-        Callback triggered when the client disconnects from the MQTT broker.
-
-        Behavior:
-        - If the disconnection is intentional (indicated by `rc == 0`), logs that the client successfully disconnected from the broker.
-        - If the disconnection is unintentional (`rc != 0`), logs a warning and attempts to reconnect to the broker.
-        - If the reconnection attempt fails, logs the error.
-
-        Parameters:
-        - client (mqtt.Client): The MQTT client instance that was disconnected.
-        - userdata (object): User-defined data passed to the callback (unused here).
-        - rc (int): The reason code for the disconnection.
-        - A value of `0` indicates a successful, intentional disconnect (e.g., through `client.disconnect()`).
-        - A non-zero value indicates an unexpected disconnect (e.g., due to network issues or broker failure).
-
-        Reconnection Logic:
-        - If an unintentional disconnection occurs (`rc != 0`), the function attempts to automatically reconnect to the broker using `client.reconnect()`.
-        - If the reconnection attempt fails, the exception is caught, and an error is logged.
-
-        Returns:
-        - None: This function does not return a value and simply handles the disconnection event and, if necessary, reconnection.
-
-        Logging Behavior:
-        - Logs successful disconnections (when `rc == 0`).
-        - Logs warnings and errors when unexpected disconnections occur or when reconnection attempts fail.
-        """
         # If the return code (rc) is 0, the disconnection was intentional
         if rc == 0:
             logger.info("Disconnected from MQTT broker successfully.")
@@ -288,33 +151,6 @@ class MQTTHandler:
                 logger.error(f"Failed to reconnect: {e}")
 
     def subscribe(self, topic: str) -> bool:
-        """
-        Subscribes to the given MQTT topic and waits for acknowledgment from the broker.
-
-        Behavior:
-        - Clears the `self.subscription_estabilished` event, indicating that no subscription acknowledgment has been received yet.
-        - Initiates a subscription to the specified `topic` using `self.client.subscribe()`.
-        - Stores the `mid` (message ID) of the subscription request in `self.pending_subscriptions` to track the acknowledgment.
-        - Logs the subscription request.
-        - Waits for the subscription acknowledgment by monitoring the `self.subscription_estabilished` event.
-        - If acknowledgment is received within the timeout period, it logs success and returns `True`.
-        - If no acknowledgment is received within the timeout period, it logs a warning and returns `False`.
-
-        Parameters:
-        - topic (str): The MQTT topic to subscribe to.
-
-        Returns:
-        - bool: Returns `True` if the subscription is successfully acknowledged, otherwise `False` if the acknowledgment times out.
-
-        Process Flow:
-        1. The `self.subscription_estabilished` event is cleared to signal that the subscription has not yet been confirmed.
-        2. The MQTT client attempts to subscribe to the specified topic, and the `mid` (message ID) of the subscription is stored.
-        3. The method then waits for the `on_subscribe()` callback to signal that the subscription was acknowledged by the broker.
-        4. If the acknowledgment is received within the timeout, it returns `True`. If not, it returns `False`.
-
-        Usage:
-        - This method is used to subscribe to a topic and ensure that the subscription is confirmed by the broker within a specified time.
-        """
         # Clear the subscription event to signal that no acknowledgment has been received yet
         self.subscription_estabilished.clear()
 
@@ -340,28 +176,6 @@ class MQTTHandler:
             return False
 
     def on_subscribe(self, client: mqtt.Client, userdata: object, mid: int, rc: int, properties: dict = None) -> None:
-        """
-        MQTT callback that is triggered when the broker acknowledges a subscription request.
-
-        Behavior:
-        - Sets the `self.subscription_estabilished` event to notify the `subscribe()` method that the subscription has been acknowledged.
-        - Retrieves the corresponding topic for the subscription `mid` from `self.pending_subscriptions`.
-        - Logs whether the subscription acknowledgment was received and associates it with the correct topic.
-
-        Parameters:
-        - client (mqtt.Client): The MQTT client instance that is handling the subscription.
-        - userdata (object): User-defined data passed to the callback (unused here).
-        - mid (int): The message ID of the subscription acknowledgment.
-        - rc (int): The result code of the subscription acknowledgment (0 indicates success).
-        - properties (dict, optional): MQTT 5.0 properties (unused here).
-
-        Returns:
-        - None: This is a callback method and does not return anything.
-
-        Usage:
-        - This method is automatically triggered by the Paho MQTT client when the broker acknowledges a subscription.
-        - It signals to the rest of the application (through `self.subscription_estabilished.set()`) that the subscription was successfully established.
-        """
         # Signal that the subscription acknowledgment has been received
         self.subscription_estabilished.set()
 
@@ -375,30 +189,6 @@ class MQTTHandler:
             logger.info(f"MQTT subscription with mid '{mid}' acknowledged but no topic found in pending subscriptions")
 
     def on_unsubscribe(self, client: mqtt.Client, userdata: object, mid: int, reason_code_list: list, properties: dict = None) -> None:
-        """
-        Callback triggered when the broker acknowledges an unsubscribe request.
-
-        Behavior:
-        - Sets the `self.subscriptions_terminated` event to signal that the unsubscribe operation has been acknowledged.
-        - Logs that the broker has acknowledged the unsubscribe request for the message ID (`mid`).
-
-        Parameters:
-        - client (mqtt.Client): The MQTT client instance that is handling the unsubscribe request.
-        - userdata (object): User-defined data passed to the callback (unused here).
-        - mid (int): The message ID of the unsubscribe request. This ID corresponds to the request made by the client when it called `unsubscribe()`.
-        - reason_code_list (list): A list of reason codes for each topic in the unsubscribe request.
-        - A reason code of `0` typically indicates success for each topic.
-        - properties (dict, optional): MQTT 5.0 properties associated with the unsubscribe acknowledgment (unused here).
-
-        Event Handling:
-        - The `self.subscriptions_terminated` event is set once the unsubscribe request is acknowledged by the broker. This event can be used to block further operations until the unsubscribe operation is confirmed.
-
-        Logging Behavior:
-        - Logs the message ID (`mid`) of the acknowledged unsubscribe request for tracking purposes.
-
-        Returns:
-        - None: This function is a callback and does not return a value. It simply handles the unsubscribe acknowledgment and logs relevant information.
-        """
         # Signal that the unsubscribe request has been acknowledged by the broker
         self.subscriptions_terminated.set()
 
@@ -406,9 +196,6 @@ class MQTTHandler:
         logger.info(f"MQTT unsubscribe acknowledgment for mid '{mid}' received")
 
     def on_publish(self, client: mqtt.Client, userdata: object, mid: int, reason_code: int, properties: dict = None) -> None:
-        """
-        Enhanced MQTT on_publish callback to track message publication status.
-        """
         # Log successful message publication with its message ID and reason code
         if reason_code == 0:
             logger.info(f"MQTT message with mid '{mid}' successfully published.")
@@ -420,23 +207,6 @@ class MQTTHandler:
             self.pending_messages.pop(mid, None)
 
     def publish_message(self, topic: str, payload: str) -> None:
-        """
-        Publishes a message to the MQTT topic asynchronously by adding it to the publishing queue.
-
-        Behavior:
-        - Places the message (topic and payload) into `self.queue_pub`, which is processed by a separate thread (`publish_mqtt_message`).
-        - Logs the message being queued for publishing. If the message payload is large and verbosity is disabled, it logs a placeholder instead of the full message.
-
-        Parameters:
-        - topic (str): The MQTT topic to which the message will be published.
-        - payload (str): The message content (payload) to publish.
-
-        Returns:
-        - None: This method enqueues the message for publishing and does not return a value.
-
-        Logging Behavior:
-        - If verbosity is disabled (`self.config['verbose']` is `False`) and the payload exceeds a length defined by `self.config['mqtt'].get('long_payload', 0)`, it logs `"<long payload>"` instead of the full message content.
-        """
         # Place the topic and payload into the publishing queue
         self.queue_pub.put((topic, payload))
 
@@ -444,30 +214,6 @@ class MQTTHandler:
         logger.info(f"MQTT publish: -t '{topic}' -m '{'<long payload>' if not self.config['verbose'] and len(payload) > self.config['mqtt'].get('long_payload', 0) else payload}'")
 
     def publish_mqtt_message(self, client: mqtt.Client, q: queue.Queue) -> None:
-        """
-        Thread function responsible for publishing MQTT messages from the queue (`self.queue_pub`).
-
-        Behavior:
-        - Continuously retrieves messages from `self.queue_pub`.
-        - Publishes each message to the specified MQTT topic.
-        - If the message is successfully queued for publishing, it tracks the message ID (`mid`) in `self.pending_messages`.
-        - If a `(None, None)` message is received, it breaks the loop and exits the thread (this is used as a signal to stop the thread).
-
-        Parameters:
-        - client (mqtt.Client): The MQTT client instance that is handling the publishing.
-        - q (queue.Queue): The queue (likely `self.queue_pub`) from which messages are retrieved for publishing.
-
-        Returns:
-        - None: This function runs continuously in a thread and does not return a value.
-
-        Thread Lifecycle:
-        - The thread will run indefinitely, publishing messages from the queue until a `(None, None)` tuple is received, signaling the thread to stop.
-
-        Publishing Behavior:
-        - Each message retrieved from the queue is a tuple containing a `topic` and `payload`.
-        - The message is published to the broker using `self.client.publish()`.
-        - The thread tracks each published message by storing its message ID (`mid`) in `self.pending_messages`, allowing the program to track the status of each message until the broker confirms it has been published.
-        """
         logger.info(f"MQTT entered publishing thread")
 
         while True:
@@ -497,28 +243,6 @@ class MQTTHandler:
         logger.info(f"MQTT exited publishing thread")
 
     def on_message(self, client: mqtt.Client, userdata: object, message: mqtt.MQTTMessage) -> None:
-        """
-        Callback function that is triggered when a message is received from a subscribed MQTT topic.
-
-        Behavior:
-        - Decodes the message payload and logs it. If the payload is large and verbosity is disabled, logs a placeholder instead of the full message.
-        - Puts the topic and payload into `self.queue_rec`, a queue used by the receiving thread (`receive_mqtt_message`).
-
-        Parameters:
-        - client (mqtt.Client): The MQTT client instance that is receiving the message.
-        - userdata (object): User-defined data passed to the callback (unused in this case).
-        - message (mqtt.MQTTMessage): The message object that contains details about the received MQTT message, including topic, payload, QoS, and retain flag.
-
-        Returns:
-        - None: This is a callback function and does not return any value.
-
-        Logging Behavior:
-        - If the payload is long and verbosity is disabled, it logs "<long payload>" instead of the full message.
-        - The maximum payload length before truncating is defined by `self.config['mqtt'].get('long_payload', 0)`.
-
-        Queueing Behavior:
-        - The received message (topic and payload) is placed into `self.queue_rec`, which is processed by the receiving thread (`receive_mqtt_message()`).
-        """
         # Decode the payload
         payload = message.payload.decode()
 
@@ -531,28 +255,6 @@ class MQTTHandler:
         self.queue_rec.put((message.topic, payload))
 
     def receive_mqtt_message(self, client: mqtt.Client, q: queue.Queue) -> None:
-        """
-        Thread function responsible for processing MQTT messages from the queue (`self.queue_rec`).
-
-        Behavior:
-        - Continuously retrieves messages from the `self.queue_rec` queue.
-        - If a message with a topic of `None` is received, it breaks the loop and exits the thread (this is used as a signal to stop the thread).
-        - If a `message_handler` function is provided, it calls the handler for each received message.
-
-        Parameters:
-        - client (mqtt.Client): The MQTT client instance that is running the thread.
-        - q (queue.Queue): The queue (likely `self.queue_rec`) where received messages are stored.
-
-        Returns:
-        - None: This function runs continuously in a thread and does not return a value.
-
-        Thread Lifecycle:
-        - The thread will run indefinitely, processing incoming messages from the queue until a message with `None` as the topic is received, signaling the thread to exit.
-
-        Processing Behavior:
-        - Each message retrieved from the queue is a tuple containing a `topic` and `payload`.
-        - If `self.message_handler` is provided, it is called with the `message` (a tuple containing topic and payload).
-        """
         logger.info(f"MQTT entered receiving thread")
 
         while True:
