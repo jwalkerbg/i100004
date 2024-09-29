@@ -12,7 +12,6 @@ class MQTTMS:
         Initialize objects
         '''
 
-        logger.info(f"def __init__(self, config:Dict, mqtt_dispatcher: MQTTDispatcher=None):")
         # Create MQTTDispatcher object
         try:
             self.mqtt_dispatcher = None
@@ -72,7 +71,6 @@ class MQTTMS:
         self.mqtt_handler.define_message_handler(self.mqtt_dispatcher)
 
     def connect_mqtt_broker(self) -> bool:
-        logger.info(f"def connect_mqtt_broker(self) -> bool:")
         try:
             res = self.mqtt_handler.connect()
             if not res:
@@ -84,7 +82,6 @@ class MQTTMS:
             return False
 
     def subscribe(self) -> bool:
-        logger.info(f"def subscribe(self) -> bool:")
         try:
             res = self.ms_protocol.subscribe(self.ms_protocol.construct_rsp_topic())
             if not res:
@@ -96,7 +93,6 @@ class MQTTMS:
                 return False
 
     def graceful_exit(self) -> None:
-        logger.info(f"def graceful_exit(self) -> None:")
         if self.ms_protocol:
             self.ms_protocol.graceful_exit()
         if self.mqtt_handler:
