@@ -1,18 +1,17 @@
-import time
 import threading
 import re
 import json
 import jsonschema
 from jsonschema import validate, ValidationError, Draft7Validator, FormatChecker
-import rfc3986
+from typing import Dict
 import queue
-import struct
 import random
-from cliapp.logger_module import logger, string_handler
-from cliapp.mqtt_handler import MQTTHandler
+
+from mqttms.mqtt_handler import MQTTHandler
+from mqttms.logger_module import logger
 
 class MSProtocol:
-    def __init__(self, config):
+    def __init__(self, config:Dict):
         """
         Initialize the command protocol with MQTTHandler and device MAC addresses.
 
@@ -268,3 +267,8 @@ class MSProtocol:
         except jsonschema.exceptions.ValidationError as err:
             logger.info(f"JSON data is invalid: {err.message}")
             return False
+
+    def graceful_exit(self) -> None:
+        self.put_command(None)
+        self.command_thread.join()
+        logger.info(f"MS: graceful exited")

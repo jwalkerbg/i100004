@@ -3,8 +3,8 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='cliapp',
-    version='0.5.1',
+    name='mqttms',
+    version='1.0.1',
     description='A sample Python project with CLI and importable module',
     author='Ivan Cenov',
     author_email='i_cenov@botevgrad.com',
@@ -12,13 +12,9 @@ setup(
     packages=find_packages(),
     install_requires=[
         'jsonschema',  # Add your dependencies here
-        'paho-mqtt'
+        'paho-mqtt',
+        'rfc3986'
     ],
-    entry_points={
-        'console_scripts': [
-            'cliapp=cliapp.cli:main',
-        ],
-    },
     classifiers=[
         'Programming Language :: Python :: 3',
         'License :: OSI Approved :: MIT License',  # Update with your license

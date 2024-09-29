@@ -1,17 +1,15 @@
-# logger.py
+# # logger.py
 
-# logger_module.py
+# # logger_module.py
 import logging
 from datetime import datetime
 
-# Custom Formatter
 class CustomFormatter(logging.Formatter):
     def format(self, record):
         log_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         log_message = f"{log_time} - {record.name} - {record.levelname} - {record.getMessage()}"
         return log_message
 
-# Custom Logging Handler
 class StringHandler(logging.Handler):
     def __init__(self):
         super().__init__()
@@ -28,7 +26,7 @@ class StringHandler(logging.Handler):
         self.log_messages = []
 
 # Logger Setup
-logger = logging.getLogger("cliapp")
+logger = logging.getLogger('mqttms')
 logger.setLevel(logging.INFO)
 
 # Create the custom formatter and string handler
@@ -42,4 +40,4 @@ console_handler.setFormatter(custom_formatter)
 
 # Add handlers to the logger
 logger.addHandler(console_handler)
-# logger.addHandler(string_handler)
+#logger.addHandler(string_handler)

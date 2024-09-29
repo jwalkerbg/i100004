@@ -1,5 +1,7 @@
-/cliapp/__pycache__
+/__pycache__
+/mqttms/__pycache__
 /tests/__pycache__
-/cliapp.egg-info
-venv
-build
+/mqttms.egg-info
+/venv
+/build
+/dist
