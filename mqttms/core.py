@@ -26,42 +26,42 @@ class MQTTms:
         try:
             self.ms_protocol = MSProtocol(config=config)
         except MemoryError as e:
-            logger.error(f"Memory error: {e}")
+            logger.error(f"MQTTMS: Memory error: {e}")
             raise e
         except RuntimeError as e:
-            logger.error(f"Runtime error: {e}")
+            logger.error(f"MQTTMS: Runtime error: {e}")
             raise e
         except TypeError as e:
-            logger.error(f"TypeError: {e}")
+            logger.error(f"MQTTMS: TypeError: {e}")
             raise e
         except ValueError as e:
-            logger.error(f"ValueError: {e}")
+            logger.error(f"MQTTMS: ValueError: {e}")
             raise e
         except Exception as e:
-            logger.error(f"Exception: {e}")
+            logger.error(f"MQTTMS: Exception: {e}")
             raise e
 
         # Create MQTThandler
         try:
             self.mqtt_handler = MQTTHandler(config)
         except MemoryError as e:
-            logger.error(f"Memory error: {e}")
+            logger.error(f"MQTTMS: Memory error: {e}")
             self.ms_protocol.graceful_exit()
             raise e
         except RuntimeError as e:
-            logger.error(f"Runtime error: {e}")
+            logger.error(f"MQTTMS: Runtime error: {e}")
             self.ms_protocol.graceful_exit()
             raise e
         except TypeError as e:
-            logger.error(f"TypeError: {e}")
+            logger.error(f"MQTTMS: TypeError: {e}")
             self.ms_protocol.graceful_exit()
             raise e
         except ValueError as e:
-            logger.error(f"ValueError error: {e}")
+            logger.error(f"MQTTMS: ValueError error: {e}")
             self.ms_protocol.graceful_exit()
             raise e
         except Exception as e:
-            logger.error(f"Exception: {e}")
+            logger.error(f"MQTTMS: Exception: {e}")
             self.ms_protocol.graceful_exit()
             raise e
 
@@ -78,18 +78,18 @@ class MQTTms:
                 return False
             return True
         except Exception as e:
-            logger.error(f"Cannot connect to MQTT broker: {e}")
+            logger.error(f"MQTTMS: Cannot connect to MQTT broker: {e}")
             return False
 
     def subscribe(self) -> bool:
         try:
             res = self.ms_protocol.subscribe(self.ms_protocol.construct_rsp_topic())
             if not res:
-                logger.warning(f"MQTTms: Not successful subscription: {e}.")
+                logger.warning(f"MQTTMS: Not successful subscription: {e}.")
                 return False
             return True
         except Exception as e:
-                logger.warning(f"MQTTms: Not successful subscription: {e}.")
+                logger.warning(f"MQTTMS: Not successful subscription: {e}.")
                 return False
 
     def graceful_exit(self) -> None:
