@@ -1,5 +1,5 @@
 /__pycache__
-/mqttms/__pycache__
+/src/mqttms/__pycache__
 /tests/__pycache__
 /mqttms.egg-info
 /venv
