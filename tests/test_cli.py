@@ -10,6 +10,3 @@ class TestCLI(unittest.TestCase):
         # parsed_args = parse_args(test_args)
         # self.assertEqual(parsed_args.name, 'Alice')
         pass
-
-if __name__ == '__main__':
-    unittest.main()

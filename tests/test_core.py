@@ -8,6 +8,3 @@ class TestCore(unittest.TestCase):
         """Test the hello_world function."""
         #self.assertEqual(hello_world('Alice'), 'Hello, Alice!')
         pass
-
-if __name__ == '__main__':
-    unittest.main()
