@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mqttms"
-version = "0.1.0"
+version = "1.1.0"
 description = "A sample Python project with CLI and importable module"
 readme = { text = """This is a multi-line basic string.
 It allows for special characters such as \n for newlines and " for quotes.""", content-type = "text/plain" }
@@ -12,10 +12,10 @@ requires-python = ">=3.6"
 
 # Author information using a literal single-quoted email and basic double-quoted name
 authors = [
-    { name = "Ivan Cenov", email = "ivan.cenov@rnd.bg" }
+    { name = "Ivan Cenov", email = "i_cenov@botevgrad.com" }
 ]
 maintainers = [
-    { name = "Ivan Cenov", email = "ivan.cenov@rnd.bg" }
+    { name = "Ivan Cenov", email = "i_cenov@botevgrad.com" }
 ]
 
 # Dependencies
