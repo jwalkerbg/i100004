@@ -15,6 +15,9 @@ class MQTTms:
         self.config = config
         self.config.update(logging)
 
+        if self.config.get('verbose', False):
+            logger.info(f"MQTTms Configuration: {self.config}")
+
         # Create MQTTDispatcher object
         try:
             self.mqtt_dispatcher = None
