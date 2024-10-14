@@ -1,0 +1,59 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mqttms"
+version = "1.1.0"
+description = "A sample Python project with CLI and importable module"
+readme = { text = """This is a multi-line basic string.
+It allows for special characters such as \n for newlines and " for quotes.""", content-type = "text/plain" }
+requires-python = ">=3.6"
+
+# Author information using a literal single-quoted email and basic double-quoted name
+authors = [
+    { name = "Ivan Cenov", email = "i_cenov@botevgrad.com" }
+]
+maintainers = [
+    { name = "Ivan Cenov", email = "i_cenov@botevgrad.com" }
+]
+
+# Dependencies
+dependencies = [
+    "numpy",
+    "paho-mqtt",
+    "jsonschema",
+    "rfc3986",
+    "tomli; python_version < '3.11'"
+]
+
+# Optional dependencies section for development tools
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0"
+]
+
+# Defining various URLs (these UTL are examples, please add other urls and/or remove redundant ones.
+[project.urls]
+homepage = "https://mqttms.example.com"  # Literal string for homepage URL
+repository = "http://github.com/jwalkerbg/i100004.git"  # Basic string for repository URL
+documentation = "https://i100004.readthedocs.io"
+bug_tracker = "https://github.com/jwalkerbg/i100004/issues"
+changelog = "https://github.com/jwalkerbg/i100004/releases"
+ci_pipeline = "https://github.com/jwalkerbg/mqi100004ttms/actions"
+funding = "https://github.com/sponsors/jwalkerbg"
+faq = "https://i100004.example.com/faq"  # Custom URL key for FAQ
+
+# Example custom configuration for `setuptools`
+[tool.setuptools]
+package-dir = {"" = "src"}  # Single-quoted key for directory name
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+# Entry point for the CLI script
+# [project.scripts]
+# mqttms = "mqttms.cli.app:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
