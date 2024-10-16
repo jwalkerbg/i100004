@@ -1,7 +1,7 @@
 /__pycache__
-/mqttms/__pycache__
+/src/mqttms/__pycache__
 /tests/__pycache__
-/mqttms.egg-info
+/src/mqttms.egg-info
 /venv
 /build
 /dist

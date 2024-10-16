@@ -7,16 +7,22 @@ from mqttms.logger_module import logger
 from mqttms.mqtt_dispatcher import MQTTDispatcher
 
 class MQTTms:
-    def __init__(self, config:Dict, mqtt_dispatcher: MQTTDispatcher=None):
+    def __init__(self, config:Dict, logging:Dict, mqtt_dispatcher: MQTTDispatcher=None):
         '''
         Initialize objects
         '''
+
+        self.config = config
+        self.config.update(logging)
+
+        if self.config.get('verbose', False):
+            logger.info(f"MQTTms Configuration: {self.config}")
 
         # Create MQTTDispatcher object
         try:
             self.mqtt_dispatcher = None
             if mqtt_dispatcher == None:
-                self.mqtt_dispatcher = MQTTDispatcher(config=config)
+                self.mqtt_dispatcher = MQTTDispatcher(config=self.config)
             else:
                 self.mqtt_dispatcher = mqtt_dispatcher
         except MemoryError as e:
@@ -24,7 +30,7 @@ class MQTTms:
 
         # Create MSProtocol object
         try:
-            self.ms_protocol = MSProtocol(config=config)
+            self.ms_protocol = MSProtocol(config=self.config)
         except MemoryError as e:
             logger.error(f"MQTTMS: Memory error: {e}")
             raise e
@@ -43,7 +49,7 @@ class MQTTms:
 
         # Create MQTThandler
         try:
-            self.mqtt_handler = MQTTHandler(config)
+            self.mqtt_handler = MQTTHandler(config=self.config)
         except MemoryError as e:
             logger.error(f"MQTTMS: Memory error: {e}")
             self.ms_protocol.graceful_exit()

@@ -11,7 +11,6 @@ class MQTTDispatcher(AbstractMQTTDispatcher):
     def __init__(self, config: Dict, protocol:MSProtocol = None):
         super().__init__(config)
         self.ms_protocol = protocol
-        logger.info(f"MQTTDispatcher __init__")
 
     def define_ms_protocol(self, protocol:MSProtocol = None) -> None:
         self.ms_protocol = protocol
