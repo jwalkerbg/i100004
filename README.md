@@ -1,19 +1,75 @@
-# My CLI + Module Application
+# MQTTMS
+
+- [MQTTMS](#mqttms)
+  - [Overview](#overview)
+  - [Project organization](#project-organization)
+    - [Build](#build)
+  - [Structure](#structure)
+  - [Configuration](#configuration)
+    - [1. `config.json` File](#1-configjson-file)
+    - [2. Command-Line Arguments](#2-command-line-arguments)
+  - [Configuration Options](#configuration-options)
+    - [MQTT Settings](#mqtt-settings)
+    - [MS Protocol Settings](#ms-protocol-settings)
+  - [Usage](#usage)
+    - [Running the Application](#running-the-application)
+    - [Overriding Configuration via Command-Line Arguments](#overriding-configuration-via-command-line-arguments)
+    - [Verbose Mode](#verbose-mode)
+    - [Requirements](#requirements)
+  - [Configuration File](#configuration-file)
 
 ## Overview
 
-This application is a flexible CLI and Python module that allows users to configure MQTT and MS protocol settings using either a `config.json` file or command-line arguments. It supports nested configurations and provides verbose logging for debugging.
+MQTTMS implements basic MQTT client plus support for MS (Master-Slave) protocol, master side. I can be used by applications which provide it with connection and subscription information about MQTT. Also, applications provide information to configure MS protocol (format of MQTT topics, etc). Once configured, the module can be used by applications to send commands to devices over MQTT and receive back information from them.
 
-The application is designed to connect to an MQTT broker and interact with a server under test (DUT). The settings for both MQTT and the device can be overridden via the CLI, allowing easy configuration for different environments.
+The module is constructed to run MS protocol. However besides it, application can bet set to run other MQTT communications as well.
 
-Note: MQTT configuration is included in this version, however real MQTT communication is still missing.
+## Project organization
 
-## Features
+MQTTMS uses `pyproject.toml` organization. It does not use old and obsolete `setup.py` or `requrements.txt` files.
 
-- **MQTT Configuration**: Host, port, username, and password.
-- **MS Protocol**: Client and server MAC addresses, MQTT topics etc
-- **Command-Line Overrides**: You can override configuration values specified in `config.json` directly from the command line.
-- **Verbose Mode**: The application can run in verbose mode to provide detailed logging of the configuration and runtime behavior.
+### Build
+
+The project can be built from source by executing
+
+`python -m build`
+
+from the root diretory of the project. (Module `build` must be installed before that by `pip install build`.)
+
+This will produce two files in `dist` directory:
+
+* mqttms-1.1.0-py3-none-any.whl
+* mqttms-1.1.0.tar.gz
+
+These files can be distrubuted and installed by
+
+`pip install mqttms-1.1.0-py3-none-any.whl`
+
+or
+
+`pip install mqttms-1.1.0.tar.gz`
+
+One of these is enough, and `whl` is preferred. For developing, the repository with the sources can be used and installed in editable mode by
+
+`pip install -e .`
+
+As this module cannot be used alone, an application is needed to use it, the better scenario is to create common virtual environment of MQTTMS and the application and then install the module with above command in this common envronment.
+
+## Structure
+
+MQTTMS has layered structure.
+
+```
++--------------+-----------------+
+| MS protocol  | Other module(s) |
++--------------+-----------------+
+|         MQTT Disptacher        |
++--------------------------------+
+|          MQTT Handler          |
++--------------------------------+
+|        mqtt-paho library       |
++--------------------------------+
+```
 
 ## Configuration
 
@@ -141,25 +197,3 @@ If you need to use a different ```config.json``` file, you can create a ```confi
 
 The application will load this file at runtime unless overridden by command-line arguments.
 
-## Extending the Application
-
-You can easily extend this application by adding more configuration options in the ```config.json``` file or expanding the CLI to accept additional arguments.
-
-To add a new configuration section:
-
-1. Update the ```DEFAULT_CONFIG``` in config.py.
-2. Modify the schema in ```config.py``` to validate the new options.
-3. Update the CLI parser in ```cli.py``` to accept new options.
-4. Modify the run_app function in ```core.py``` to make use of the new options.
-
-## Contributing
-
-Feel free to fork this project and submit pull requests. All contributions are welcome!
-
-## How to make importable module
-
-
-
-## License
-
-This project is licensed under the MIT License.
