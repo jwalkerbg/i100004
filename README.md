@@ -60,8 +60,10 @@ As this module cannot be used alone, an application is needed to use it, the bet
 MQTTMS has layered structure.
 
 ```
-+--------------+-----------------+
-| MS protocol  | Other module(s) |
++--------------------------------+
+|          Application           |
++================================+
+| MS protocol  |      Logger     |
 +--------------+-----------------+
 |         MQTT Disptacher        |
 +--------------------------------+
