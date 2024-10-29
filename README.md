@@ -8,7 +8,9 @@
   - [Configuration](#configuration)
     - [MQTTMS configuration](#mqttms-configuration)
     - [Logging configuration.](#logging-configuration)
-    - [](#)
+    - [Example of supplying configuration options.](#example-of-supplying-configuration-options)
+  - [Classes](#classes)
+    - [class MQTTms.](#class-mqttms)
 
 ## Overview
 
@@ -122,7 +124,7 @@ Here, it is divided to two parts - `mqtt` for MQTT Handler and `ms` for MS Proto
 
 ### Logging configuration.
 
-Logging configuration is simple. In current version it determines whether the logging will be verbose or not.
+Logging configuration is simple. In current version, it determines whether the logging will be verbose or not (`True` or `False`).
 
 ```python
 'logging': {
@@ -130,15 +132,23 @@ Logging configuration is simple. In current version it determines whether the lo
 }
 ```
 
-###
+### Example of supplying configuration options.
 
 Above configurations are given as JSON objects. They are supplied as aruments of creating `MQTTms` object. Example:
+
+```config``` is a `Dict` object which have in itself sub-objects `mqttms` and `logging`.
 
 ```python
     # create object
     try:
-        mqttms = MQTTms(config.config['mqttms'],config.config['logging'])
+        mqttms = MQTTms(config['mqttms'],config['logging'])
     except Exception as e:
         logger.error(f"Cannot create MQTTMS object. Giving up: {e}")
         return
 ```
+
+## Classes
+
+### class MQTTms.
+
+`class MQTTms` is the main (root) class.
