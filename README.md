@@ -18,6 +18,11 @@
     - [class AbstractMQTTDispatcher.](#class-abstractmqttdispatcher)
       - [`__ini`\_\_.](#__ini__)
       - [`handle_message`.](#handle_message)
+    - [class MQTTDispatcher.](#class-mqttdispatcher)
+      - [`__init__`](#__init__-1)
+      - [`define_ms_protocol`](#define_ms_protocol)
+      - [`match_mqtt_topic_for_ms`.](#match_mqtt_topic_for_ms)
+      - [`handle_message`.](#handle_message-1)
 
 ## Overview
 
@@ -302,3 +307,73 @@ The method just returns `False` without handling the MQTT message in anyway. Ret
 
 `class AbstractMQTTDispatcher` must be inherited and it is inherited by `class MQTTDispatcher`. Its `handle_message` does real work, first calling this member function. And because this member function return `False`, it tries to handle (to dispatch) the message.
 
+### class MQTTDispatcher.
+
+This class is default dispatcher of `mqttms` module. It dispatches the messages that are responses of MS protocol commands to the MS protocol object. If other messages come they are ommitted.
+
+If the application receives other messages, it can inherit this class and override `handle_message` function of this class so as the additional messages to be handled.
+
+#### `__init__`
+
+Prototype:
+
+```
+__init__(self, config: Dict, protocol:MSProtocol = None):
+```
+
+Parameters:
+* `config:Dict` - confguration options supplied by the application used `mqttms`.
+* `protocol:MSProtocol` - MSprotocol object
+
+If the MSProrocol onbject is not know at the moment of construction of the object of `class MQTTDispatcher` it is not supplied. However, it can be supplied later with a call to `define_ms_protocol` method.
+
+#### `define_ms_protocol`
+
+Prototype:
+
+```
+define_ms_protocol(self, protocol:MSProtocol = None) -> None:
+```
+
+Parameters:
+* `protocol:MSProtocol` - MSprotocol object
+
+If `protocol` parameter is not supplied, this practically deletes the link between `MQTTDispatcher` object and `MSprotrocol` object.
+
+#### `match_mqtt_topic_for_ms`.
+
+Prototype:
+
+```
+match_mqtt_topic_for_ms(self, topic: str) -> bool
+```
+
+Parameters:
+* topic:str - the topic of the MQTT message.
+
+This member function macthes if the topic matches the pattern of response topic of MS protocol commands. It returns `True` if the topic matches the expected format, `False` otherwise.
+
+#### `handle_message`.
+
+Prototype:
+
+```
+handle_message(self, message: Tuple[str, str]) -> bool
+```
+
+`handle_message` here defines the prototype without any action. It is decorated as an abstract method.
+
+Parameters:
+
+* message: Tuple[str, str] - a tuple of two string, first of them MQTT topic and second one - MQTT payload.
+
+This member function calls the function with same name from the parent class with same parameters. If it returns `False`, a matching against MS protocol responces` topics is performed. If the topic matches, the message is pushed into the queue of MS protocol object's thread. If not matched, the message is silently dropped.
+
+If an application needs to handle other messages in additrion to the messages MS protocol, it has to implement a class ihnerited from `class MQTTDispatcher`. Its `handle_message` should call `super().handle_message(message)` and if it returns `True` top skip handling. If it returns `False` then this function here should match message against its criterial and eventualy send the message to relevant receiver.
+
+The general rule is
+
+```
+def handle_message(self, message: Tuple[str, str]) -> bool:
+    if not super().handle_message(message):
+        pass    # add code to handle message here
