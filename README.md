@@ -16,10 +16,10 @@
       - [`subscribe`](#subscribe)
       - [`graceful_exit`](#graceful_exit)
     - [class AbstractMQTTDispatcher.](#class-abstractmqttdispatcher)
-      - [`__ini`\_\_.](#__ini__)
+      - [`__init__`.](#__init__-1)
       - [`handle_message`.](#handle_message)
     - [class MQTTDispatcher.](#class-mqttdispatcher)
-      - [`__init__`](#__init__-1)
+      - [`__init__`](#__init__-2)
       - [`define_ms_protocol`](#define_ms_protocol)
       - [`match_mqtt_topic_for_ms`.](#match_mqtt_topic_for_ms)
       - [`handle_message`.](#handle_message-1)
@@ -277,7 +277,7 @@ This function executes chain of actions to terminate threads and disconnect from
 
 This class serves as a base of the real dispathcer, `class MQTTDispatcher`. It defines an abstract prototype of `handle_message` function. No functionality is implemented in this class.
 
-#### `__ini`__.
+#### `__init__`.
 
 Prototype:
 
