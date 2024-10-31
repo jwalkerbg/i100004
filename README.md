@@ -23,6 +23,7 @@
       - [`define_ms_protocol`](#define_ms_protocol)
       - [`match_mqtt_topic_for_ms`.](#match_mqtt_topic_for_ms)
       - [`handle_message`.](#handle_message-1)
+    - [Add message dispatchers](#add-message-dispatchers)
 
 ## Overview
 
@@ -361,19 +362,28 @@ Prototype:
 handle_message(self, message: Tuple[str, str]) -> bool
 ```
 
-`handle_message` here defines the prototype without any action. It is decorated as an abstract method.
-
 Parameters:
 
 * message: Tuple[str, str] - a tuple of two string, first of them MQTT topic and second one - MQTT payload.
 
 This member function calls the function with same name from the parent class with same parameters. If it returns `False`, a matching against MS protocol responces` topics is performed. If the topic matches, the message is pushed into the queue of MS protocol object's thread. If not matched, the message is silently dropped.
 
-If an application needs to handle other messages in additrion to the messages MS protocol, it has to implement a class ihnerited from `class MQTTDispatcher`. Its `handle_message` should call `super().handle_message(message)` and if it returns `True` top skip handling. If it returns `False` then this function here should match message against its criterial and eventualy send the message to relevant receiver.
+### Add message dispatchers
+
+If an application uses more channels (MQTT message protocols) it may need more MQTT Dispacthers. Such dispatchers are added by inheriting
+* `class MQTTDispatcher` if need to add dispatcher plus using MS protocol
+* `class AbstractMQTTDispatcher` if need to add / defi ne dispatcher without using MS Protocol.
+
+Such class has to implement `handle_message` that should call `super().handle_message(message)` and if it returns `True` top skip handling. If it returns `False` then this function here should match message against its criterial and eventualy send the message to relevant receiver.
 
 The general rule is
 
 ```
 def handle_message(self, message: Tuple[str, str]) -> bool:
     if not super().handle_message(message):
-        pass    # add code to handle message here
+        if self.match_topic_for_a_channel(topic[0]):
+            self.a_channel.put_response(message)
+        elif self.match_topic_for_b_channel(topic[0]):
+            self.b_channel.put_response(message)
+        # etc
+```
