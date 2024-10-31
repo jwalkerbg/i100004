@@ -48,9 +48,9 @@ class MQTTDispatcher(AbstractMQTTDispatcher):
         """
 
         if not super().handle_message(message):
-            logger.info(f"handle_message: -t '{message[0]}' -m '{message[1]}'")
 
             if self.match_mqtt_topic_for_ms(message[0]):
+                logger.info(f"handle_message: -t '{message[0]}' -m '{message[1]}'")
                 self.ms_protocol.put_response(message)
                 return True
             # here more dispatcher options may be added if necessary
