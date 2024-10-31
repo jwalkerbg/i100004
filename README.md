@@ -15,6 +15,9 @@
       - [`connect_mqtt_broker`](#connect_mqtt_broker)
       - [`subscribe`](#subscribe)
       - [`graceful_exit`](#graceful_exit)
+    - [class AbstractMQTTDispatcher.](#class-abstractmqttdispatcher)
+      - [`__ini`\_\_.](#__ini__)
+      - [`handle_message`.](#handle_message)
 
 ## Overview
 
@@ -263,3 +266,39 @@ graceful_exit(self) -> None:
 ```
 
 This function executes chain of actions to terminate threads and disconnect from the server. It tries to terminate in grasefull way not hanging and not leaving some threads working.
+
+### class AbstractMQTTDispatcher.
+
+This class serves as a base of the real dispathcer, `class MQTTDispatcher`. It defines an abstract prototype of `handle_message` function. No functionality is implemented in this class.
+
+#### `__ini`__.
+
+Prototype:
+
+```
+__init__(self, config: Dict)
+```
+
+Parameters:
+* `config:Dict` - confguration options supplied by the application used `mqttms`.
+
+The single actions of this initializer is to save the value of its parameter to an object variable, here `self.config`. This is the same `config` variable that is supplied to `class MQTTms`.
+
+#### `handle_message`.
+
+Prototype:
+
+```
+handle_message(self, message: Tuple[str, str]) -> bool(self, message: Tuple[str, str]) -> bool
+```
+
+`handle_message` here defines the prototype without any action. It is decorated as an abstract method.
+
+Parameters:
+
+* message: Tuple[str, str] - a tuple of two string, first of them MQTT topic and second one - MQTT payload.
+
+The method just returns `False` without handling the MQTT message in anyway. Returning `False` means that the message has not been handled (dispatched) and the caller should take care of dispatching.
+
+`class AbstractMQTTDispatcher` must be inherited and it is inherited by `class MQTTDispatcher`. Its `handle_message` does real work, first calling this member function. And because this member function return `False`, it tries to handle (to dispatch) the message.
+
