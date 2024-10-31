@@ -11,6 +11,10 @@
     - [Example of supplying configuration options.](#example-of-supplying-configuration-options)
   - [Classes](#classes)
     - [class MQTTms.](#class-mqttms)
+      - [`__init__`](#__init__)
+      - [`connect_mqtt_broker`](#connect_mqtt_broker)
+      - [`subscribe`](#subscribe)
+      - [`graceful_exit`](#graceful_exit)
 
 ## Overview
 
@@ -151,4 +155,111 @@ Above configurations are given as JSON objects. They are supplied as aruments of
 
 ### class MQTTms.
 
-`class MQTTms` is the main (root) class.
+`class MQTTms` is the main (root) class. Creation of an object ofthis class creates all needed internal objects, threads, connections between objects.
+
+Member functions
+
+#### `__init__`
+
+Prototype:
+
+```
+__init__(self, config:Dict, logging:Dict, mqtt_dispatcher: MQTTDispatcher=None)
+```
+
+Parameters:
+* `config:Dict` - confguration options supplied by the application used `mqttms`.
+* `logging:Dict` - configuration options of logging supplied by the application used `mqttms`.
+* `mqtt_dispatcher: MQTTDispatcher=None` - dispatcher object. If none, default dispatcher object is used, that dispatched MS protocol responces
+
+`config:Dict` is a JSON structure that should meet following validation schema
+
+```
+{
+    "mqttms": {
+        "type": "object",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "properties": {
+            "mqtt": {
+                "type": "object",
+                "properties": {
+                    "host": {"type": "string"},
+                    "port": {"type": "integer", "minimum": 1, "maximum": 65535},
+                    "username": {"type": "string"},
+                    "password": {"type": "string"},
+                    "client_id": {"type": "string"},
+                    "timeout": {"type": "number"},
+                    "long_payload": {"type": "integer", "minimum": 10, "maximum": 32768}
+                },
+                "required": ["host", "port"]
+            },
+            "ms": {
+                "type": "object",
+                "properties": {
+                    "client_mac": {"type": "string"},
+                    "server_mac": {"type": "string"},
+                    "cmd_topic": {"type": "string"},
+                    "rsp_topic": {"type": "string"},
+                    "timeout": {"type": "number"}
+                },
+                "required": ["client_mac", "server_mac", "cmd_topic", "rsp_topic", "timeout"]
+            }
+        },
+        "required": ["mqtt", "ms"],
+        "additionalProperties": False
+    }
+
+}
+```
+As it can be seen this data is used to configure MQTT Handler and MS protocol.
+
+`logging:Dict` is a JSON structure that should meet following validation schema
+
+```
+{
+    "logging": {
+        "type": "object",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "properties": {
+            "verbose": {
+                "type": "boolean"
+            }
+        },
+        "additionalProperties": False
+    }
+}
+```
+
+It configures the logger module. Now, to be verbose or not.
+
+`mqtt_dispatcher: MQTTDispatcher=None` supplies `MQTTDispather` object. If this argument is ommited (is `None`), then the default dispatcher is used from mqttms. However the caller (the application) can define other dispather that probablydisptaches many kind of messages and supply here as an argument.
+
+#### `connect_mqtt_broker`
+
+Prototype:
+
+```
+connect_mqtt_broker(self) -> bool
+```
+
+This function tries to connect to the broker which data (uri, port) are given as a part of `config` parameter on initializing `MQTTms` object. It is a blocking function. It returns `True` after successful connection and `False` on fail.
+
+#### `subscribe`
+
+Prototype:
+
+```
+subscribe(self) -> bool
+```
+
+This function subscribes the client to the topic, given in the confioguration, in "ms" section - the responce of MS protocol commands. There is no way in currentr version to create additional subscriptions with this function. If they are needed, this can be done through `self.mqtt_handler` member object.
+
+#### `graceful_exit`
+
+Prototype:
+
+```
+graceful_exit(self) -> None:
+```
+
+This function executes chain of actions to terminate threads and disconnect from the server. It tries to terminate in grasefull way not hanging and not leaving some threads working.
