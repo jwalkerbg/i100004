@@ -46,11 +46,13 @@ class MQTTDispatcher(AbstractMQTTDispatcher):
         Returns:
             Return True if the message is handled
         """
-        logger.info(f"handle_message: -t '{message[0]}' -m '{message[1]}'")
 
-        if self.match_mqtt_topic_for_ms(message[0]):
-            self.ms_protocol.put_response(message)
-            return True
-        # here more dispatcher options may be added if necessary
+        if not super().handle_message(message):
+            logger.info(f"handle_message: -t '{message[0]}' -m '{message[1]}'")
+
+            if self.match_mqtt_topic_for_ms(message[0]):
+                self.ms_protocol.put_response(message)
+                return True
+            # here more dispatcher options may be added if necessary
 
         return False
