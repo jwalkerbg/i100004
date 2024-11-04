@@ -109,6 +109,9 @@ class MQTTms:
         else:
             return False
 
+    def publish(self, topic: str, payload:str) -> None:
+        self.mqtt_handler.publish_message(topic,payload)
+
     def graceful_exit(self) -> None:
         if self.ms_protocol:
             self.ms_protocol.graceful_exit()
