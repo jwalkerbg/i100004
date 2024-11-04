@@ -203,7 +203,8 @@ class MSProtocol:
         payload["dataType"] = "asciihex"
         self.response = payload
 
-    def subscribe(self, topic: str, timeout: float = 5.0):
+    def subscribe(self, timeout: float = 5.0):
+        topic = self.construct_rsp_topic()
         self.mqtt_handler.subscribe(topic)
 
         if self.mqtt_handler.subscription_estabilished.wait(timeout=self.config['mqtt'].get('timeout', timeout)):
