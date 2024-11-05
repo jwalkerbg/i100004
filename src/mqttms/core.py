@@ -76,7 +76,7 @@ class MQTTms:
             validate(instance=self.config, schema=self.CONFIG_SCHEMA)
         except ValidationError as e:
             logger.error(f"MQTTMS: Invalid confguration. Reason: {e}")
-            raise ConfigurationError
+            raise ConfigurationError(f"MQTTMS: Invalid confguration")
 
         if self.config['logging'].get('verbose', False):
             logger.info(f"MQTTms Configuration: {self.config}")
