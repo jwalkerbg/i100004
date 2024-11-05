@@ -1,19 +1,82 @@
 # mqttms/core.py
 
 from typing import Dict
+import json
+from jsonschema import validate, ValidationError
 from mqttms.mqtt_handler import MQTTHandler
 from mqttms.ms_protocol import MSProtocol
 from mqttms.logger_module import logger
 from mqttms.mqtt_dispatcher import MQTTDispatcher
+from mqttms.conferror import ConfigurationError
 
 class MQTTms:
+
+    CONFIG_SCHEMA = {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+            "mqttms": {
+                "type": "object",
+                "properties": {
+                    "mqtt": {
+                        "type": "object",
+                        "properties": {
+                            "host": {"type": "string"},
+                            "port": {"type": "integer", "minimum": 1, "maximum": 65535},
+                            "username": {"type": "string"},
+                            "password": {"type": "string"},
+                            "client_id": {"type": "string"},
+                            "timeout": {"type": "number"},
+                            "long_payload": {"type": "integer", "minimum": 10, "maximum": 32768}
+                        },
+                        "required": ["host", "port"]
+                    },
+                    "ms": {
+                        "type": "object",
+                        "properties": {
+                            "client_mac": {"type": "string"},
+                            "server_mac": {"type": "string"},
+                            "cmd_topic": {"type": "string"},
+                            "rsp_topic": {"type": "string"},
+                            "timeout": {"type": "number"}
+                        },
+                        "required": ["client_mac", "server_mac", "cmd_topic", "rsp_topic", "timeout"]
+                    }
+                },
+                "required": ["mqtt", "ms"],
+                "additionalProperties": False
+            },
+            "logging": {
+                "type": "object",
+                "properties": {
+                    "verbose": { "type": "boolean" }
+                },
+                "required": ["verbose"],
+                "additionalProperties": False
+            }
+        },
+        "required": ["mqttms", "logging"],
+        "additionalProperties": False
+    }
+
     def __init__(self, config:Dict, logging:Dict, mqtt_dispatcher: MQTTDispatcher=None):
         '''
         Initialize objects
         '''
 
-        self.config = config
-        self.config.update(logging)
+        self.config = {
+            "logging" : {},
+            "mqttms" : {}
+        }
+
+        self.config['mqttms'].update(config)
+        self.config['logging'].update(logging)
+        # validate configuration
+        try:
+            validate(instance=config, schema=self.CONFIG_SCHEMA)
+        except ValidationError as e:
+            logger.error(f"MQTTMS: Invalid confguration. Reason: {e}")
+            raise ConfigurationError
 
         if self.config.get('verbose', False):
             logger.info(f"MQTTms Configuration: {self.config}")
