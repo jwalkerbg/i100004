@@ -78,7 +78,7 @@ class MQTTms:
             logger.error(f"MQTTMS: Invalid confguration. Reason: {e}")
             raise ConfigurationError
 
-        if self.config.get('verbose', False):
+        if self.config['logging'].get('verbose', False):
             logger.info(f"MQTTms Configuration: {self.config}")
 
         # Create MQTTDispatcher object
@@ -167,7 +167,7 @@ class MQTTms:
     def _subscribe(self, topic: str, timeout: float = 5.0) -> bool:
         self.mqtt_handler.subscribe(topic)
 
-        if self.mqtt_handler.subscription_estabilished.wait(timeout=self.config['mqtt'].get('timeout', timeout)):
+        if self.mqtt_handler.subscription_estabilished.wait(timeout=self.config['mqttms']['mqtt'].get('timeout', timeout)):
             return True
         else:
             return False
