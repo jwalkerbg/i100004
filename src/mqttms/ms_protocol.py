@@ -154,7 +154,7 @@ class MSProtocol:
 
             # wait for response
             try:
-                topic, payload = self.queue_res.get(block=True,timeout=self.config['ms'].get('timeout', 5))
+                topic, payload = self.queue_res.get(block=True,timeout=self.config['mqttms']['ms'].get('timeout', 5))
             except queue.Empty:
                 # create timeout answer here
                 self.construct_not_ok_response(cid,"TM")
@@ -190,13 +190,13 @@ class MSProtocol:
         logger.info(f"MS command thread exited")
 
     def add_tracking_information(self,payload):
-        payload = re.sub('({)', r'\1' + f'"client":"{self.config["ms"].get("client_mac","_")}",', payload)
+        payload = re.sub('({)', r'\1' + f'"client":"{self.config["mqttms"]["ms"].get("client_mac","_")}",', payload)
         payload = re.sub('({)', r'\1' + f'"cid":{self.generate_random_cid()},', payload)
         return payload
 
     def construct_not_ok_response(self, cid: int, response: str):
         payload = {}
-        payload["server"] = f'{self.config["ms"].get("server_mac", "_")}'
+        payload["server"] = f'{self.config["mqttms"]["ms"].get("server_mac", "_")}'
         payload["cid"] = cid
         payload["response"] = response
         payload["data"] = ""
@@ -207,7 +207,7 @@ class MSProtocol:
         topic = self.construct_rsp_topic()
         self.mqtt_handler.subscribe(topic)
 
-        if self.mqtt_handler.subscription_estabilished.wait(timeout=self.config['mqtt'].get('timeout', timeout)):
+        if self.mqtt_handler.subscription_estabilished.wait(timeout=self.config['mqttms']['mqtt'].get('timeout', timeout)):
             return True
         else:
             return False
@@ -216,12 +216,12 @@ class MSProtocol:
         self.mqtt_handler = handler
 
     def construct_cmd_topic(self, format='ASCIIHEX'):
-        topic = self.config['ms']['cmd_topic'].replace('server_mac',self.config['ms']['server_mac'])
+        topic = self.config['mqttms']['ms']['cmd_topic'].replace('server_mac',self.config['mqttms']['ms']['server_mac'])
         topic = topic.replace('format',format)
         return topic
 
     def construct_rsp_topic(self,format='ASCIIHEX'):
-        topic = self.config['ms']['rsp_topic'].replace('client_mac',self.config['ms']['client_mac'])
+        topic = self.config['mqttms']['ms']['rsp_topic'].replace('client_mac',self.config['mqttms']['ms']['client_mac'])
         topic = topic.replace('format',format)
         return topic
 
