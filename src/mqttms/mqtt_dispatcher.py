@@ -31,7 +31,7 @@ class MQTTDispatcher(AbstractMQTTDispatcher):
             bool: True if the topic matches the expected format, False otherwise.
         """
         # Define the regex pattern for the MQTT topic, with valid formats embedded
-        pattern = fr"^@/{self.config['ms'].get('client_mac', '_')}/RSP/(ASCII|ASCIIHEX|JSON|BINARY)$"
+        pattern = fr"^@/{self.config['mqttms']['ms'].get('client_mac', '_')}/RSP/(ASCII|ASCIIHEX|JSON|BINARY)$"
 
         # Check if the given topic matches the regex pattern
         return bool(re.match(pattern, topic))
