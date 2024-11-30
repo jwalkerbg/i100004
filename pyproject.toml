@@ -21,6 +21,7 @@ maintainers = [
 # Dependencies
 dependencies = [
     "numpy",
+    "importlib",
     "paho-mqtt",
     "jsonschema",
     "rfc3986",
@@ -57,3 +58,4 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = "./src"
