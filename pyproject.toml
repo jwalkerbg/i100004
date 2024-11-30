@@ -22,6 +22,7 @@ numpy = "*"
 importlib = "*"
 paho-mqtt = "*"
 jsonschema = "*"
+types-jsonschema = "*"
 rfc3986 = "*"
 
 # Development dependencies
