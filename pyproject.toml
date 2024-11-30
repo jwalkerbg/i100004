@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mqttms"
-version = "1.1.0"
+version = "1.2.0"
 description = "A sample Python project with CLI and importable module"
 readme = { text = """This is a multi-line basic string.
 It allows for special characters such as \n for newlines and " for quotes.""", content-type = "text/plain" }
@@ -21,6 +21,7 @@ maintainers = [
 # Dependencies
 dependencies = [
     "numpy",
+    "importlib",
     "paho-mqtt",
     "jsonschema",
     "rfc3986",
@@ -57,3 +58,4 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = "./src"

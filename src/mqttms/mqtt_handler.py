@@ -10,14 +10,15 @@ from mqttms.logger_module import logger
 class MQTTHandler:
     def __init__(self, config:Dict, message_handler:AbstractMQTTDispatcher=None):
         self.config = config
-        self.client = mqtt.Client(callback_api_version=mqtt.CallbackAPIVersion.VERSION2,client_id=self.config['mqtt']['client_id'],protocol=mqtt.MQTTv5)
+        self.configmqttms = config['mqttms']    # shortcut pointer
+        self.client = mqtt.Client(callback_api_version=mqtt.CallbackAPIVersion.VERSION2,client_id=self.configmqttms['mqtt']['client_id'],protocol=mqtt.MQTTv5)
 
         self.message_handler = None
         self.define_message_handler(handler=message_handler)
 
         # Set username and password if provided
-        if self.config['mqtt']['username'] and self.config['mqtt']['password']:
-            self.client.username_pw_set(self.config['mqtt']['username'], self.config['mqtt']['password'])
+        if self.configmqttms['mqtt']['username'] and self.configmqttms['mqtt']['password']:
+            self.client.username_pw_set(self.configmqttms['mqtt']['username'], self.configmqttms['mqtt']['password'])
 
         self.connection_established = threading.Event()
 
@@ -68,8 +69,8 @@ class MQTTHandler:
             self.mqtt_receive_thread.join()
 
     def connect(self) -> bool:
-        host = self.config['mqtt']['host']
-        port = self.config['mqtt']['port']
+        host = self.configmqttms['mqtt']['host']
+        port = self.configmqttms['mqtt']['port']
         logger.info(f"MQTT connecting to MQTT broker at {host}:{port}...")
 
         try:
@@ -87,7 +88,7 @@ class MQTTHandler:
             return False
 
         # Wait for the connection to be established (set by the on_connect() callback) within the timeout period.
-        waitres = self.connection_established.wait(self.config['mqtt']['timeout'])
+        waitres = self.connection_established.wait(self.configmqttms['mqtt']['timeout'])
 
         if waitres:
             # Connection was successfully established within the timeout.
@@ -115,7 +116,7 @@ class MQTTHandler:
         # Step 1: Unsubscribe all topics
         self.subscriptions_terminated.clear()
         self.client.unsubscribe("#")
-        waitres = self.subscriptions_terminated.wait(self.config['mqtt']['timeout'])
+        waitres = self.subscriptions_terminated.wait(self.configmqttms['mqtt']['timeout'])
         if waitres:
             logger.info(f"MQTT unsubscribed successfully")
         else:
@@ -164,7 +165,7 @@ class MQTTHandler:
         logger.info(f"MQTT subscribing to topic: {topic}")
 
         # Wait for the subscription acknowledgment from the broker, with a timeout
-        waitres = self.subscription_estabilished.wait(self.config['mqtt']['timeout'])
+        waitres = self.subscription_estabilished.wait(self.configmqttms['mqtt']['timeout'])
 
         if waitres:
             # If the acknowledgment was received in time, log success and return True
@@ -211,7 +212,7 @@ class MQTTHandler:
         self.queue_pub.put((topic, payload))
 
         # Log the message being queued, optionally truncating the payload if verbosity is off and the payload is long
-        logger.info(f"MQTT publish: -t '{topic}' -m '{'<long payload>' if not self.config['verbose'] and len(payload) > self.config['mqtt'].get('long_payload', 0) else payload}'")
+        logger.info(f"MQTT publish: -t '{topic}' -m '{'<long payload>' if not self.config['logging']['verbose'] and len(payload) > self.configmqttms['mqtt'].get('long_payload', 0) else payload}'")
 
     def publish_mqtt_message(self, client: mqtt.Client, q: queue.Queue) -> None:
         logger.info(f"MQTT entered publishing thread")
@@ -248,7 +249,7 @@ class MQTTHandler:
 
         # Log the message. If verbose mode is off and the payload is long, log a placeholder.
         logger.info(
-            f"MQTT receive: -t '{message.topic}' -m '{'<long payload>' if not self.config['verbose'] and len(payload) > self.config['mqtt'].get('long_payload', 0) else payload}'"
+            f"MQTT receive: -t '{message.topic}' -m '{'<long payload>' if not self.config['logging']['verbose'] and len(payload) > self.configmqttms['mqtt'].get('long_payload', 0) else payload}'"
         )
 
         # Place the topic and payload into the receiving queue
