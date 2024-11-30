@@ -24,6 +24,9 @@
       - [`match_mqtt_topic_for_ms`.](#match_mqtt_topic_for_ms)
       - [`handle_message`.](#handle_message-1)
     - [Add message dispatchers](#add-message-dispatchers)
+    - [class MQTTHandler.](#class-mqtthandler)
+      - [`__init__`](#__init__-3)
+      - [`connect`](#connect)
 
 ## Overview
 
@@ -350,7 +353,7 @@ match_mqtt_topic_for_ms(self, topic: str) -> bool
 ```
 
 Parameters:
-* topic:str - the topic of the MQTT message.
+* `topic:str` - the topic of the MQTT message.
 
 This member function macthes if the topic matches the pattern of response topic of MS protocol commands. It returns `True` if the topic matches the expected format, `False` otherwise.
 
@@ -364,7 +367,7 @@ handle_message(self, message: Tuple[str, str]) -> bool
 
 Parameters:
 
-* message: Tuple[str, str] - a tuple of two string, first of them MQTT topic and second one - MQTT payload.
+* `message: Tuple[str, str]` - a tuple of two string, first of them MQTT topic and second one - MQTT payload.
 
 This member function calls the function with same name from the parent class with same parameters. If it returns `False`, a matching against MS protocol responces` topics is performed. If the topic matches, the message is pushed into the queue of MS protocol object's thread. If not matched, the message is silently dropped.
 
@@ -372,7 +375,7 @@ This member function calls the function with same name from the parent class wit
 
 If an application uses more channels (MQTT message protocols) it may need more MQTT Dispacthers. Such dispatchers are added by inheriting
 * `class MQTTDispatcher` if need to add dispatcher plus using MS protocol
-* `class AbstractMQTTDispatcher` if need to add / defi ne dispatcher without using MS Protocol.
+* `class AbstractMQTTDispatcher` if need to add / define dispatcher without using MS Protocol.
 
 Such class has to implement `handle_message` that should call `super().handle_message(message)` and if it returns `True` top skip handling. If it returns `False` then this function here should match message against its criterial and eventualy send the message to relevant receiver.
 
@@ -387,3 +390,37 @@ def handle_message(self, message: Tuple[str, str]) -> bool:
             self.b_channel.put_response(message)
         # etc
 ```
+
+In fact, any class that is child of `class AbstractMQTTDispatcher` has an callable attribute `handle_message` can be used. It is needed this attribute to accept a `Tuple` with topic and payload strings,
+
+### class MQTTHandler.
+
+This class is responsible for communications with MQTT broker - connecting, disconnecting, subscribing, publishing and receiving messaages. It uses queues and threads for both directions of messages which enables asynchronous usage of the module. Applications that use the module supply it with configration on creating `MQTTHandler` object. Then depending on business logic, appliactions decice when to make connections and then susbsriptions. The class has interface to allow applications to publish and receive messages. `MQTTHandler` object uses an object from intermediate `class MQTTDispacther`(or some inherited) to distribute messages to receivers.
+
+#### `__init__`
+
+Prototype:
+
+```
+__init__(self, config:Dict, message_handler:AbstractMQTTDispatcher=None)
+```
+
+Parameters:
+* `config:Dict` - JSON object as described above in [Configuration](#configuration).
+* `message_handler:AbstractMQTTDispatcher=None` - message dispather. If `None` is given, then the default MQTTDispacher object from the module is used and this means that messages to MS Potocol will be dispatched only.
+
+On initialziation time following happens
+
+* paho.mqtt client object is created and initialzied with the data supplied with `config:Dict`.
+* callback functions for paho.mqtt events are registered
+* queues and threads for both directions of messages are created and started.
+
+No connections and subscriptions are made at this time.
+
+#### `connect`
+
+Prototype:
+
+`connect(self) -> bool`
+
+This method connects to the broker defined in the configuration.
