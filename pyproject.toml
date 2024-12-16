@@ -29,15 +29,13 @@ rfc3986 = "*"
 [tool.poetry.group.dev.dependencies]
 mypy = ">=1.5.1"  # Static type checker
 pathlib = ">=1.0"
+build = "^1.2.2.post1"
 
 # Test dependencies
 [tool.poetry.group.test.dependencies]
 pytest = ">=8.0.0"
 pytest-cov = ">=6.0.0"
 pytest-mock = ">=3.0.0"
-
-
-
 
 # Definitions, specific for this project.
 [tool.build.config]
@@ -47,7 +45,7 @@ libraries = []
 build_log = true
 
 [build-system]
-requires = ["poetry-core", "setuptools", "Cython"]
+requires = ["poetry-core", "setuptools", "Cython", "build"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.build]
