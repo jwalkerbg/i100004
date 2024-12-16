@@ -2,7 +2,7 @@ from typing import Dict, Tuple, Any
 import json
 from jsonschema import validate, ValidationError
 
-DEFAULT_CONFIG = {
+DEFAULT_CONFIG: dict = {
     'logging': {
         'verbose': False
     },
@@ -26,7 +26,7 @@ DEFAULT_CONFIG = {
     }
 }
 
-config = {
+config: dict = {
     "logging" : {},
     "mqttms" : {}
 }
@@ -41,7 +41,7 @@ config['logging'].update(loggingdict)
 
 print(config)
 
-CONFIG_SCHEMA = {
+CONFIG_SCHEMA: dict = {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
     "properties": {

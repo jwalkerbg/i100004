@@ -1,61 +1,57 @@
-[build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta"
-
-[project]
+[tool.poetry]
 name = "mqttms"
-version = "1.2.0"
-description = "A sample Python project with CLI and importable module"
-readme = { text = """This is a multi-line basic string.
-It allows for special characters such as \n for newlines and " for quotes.""", content-type = "text/plain" }
-requires-python = ">=3.6"
-
-# Author information using a literal single-quoted email and basic double-quoted name
-authors = [
-    { name = "Ivan Cenov", email = "i_cenov@botevgrad.com" }
-]
-maintainers = [
-    { name = "Ivan Cenov", email = "i_cenov@botevgrad.com" }
+version = "2.0.1"
+description = "mqttms library to handle MQTT communications and MS protocol master (client) side"
+authors = ["Ivan Cenov <i_cenov@botevgrad.com>"]
+maintainers = ["Ivan Cenov <i_cenov@botevgrad.com>"]
+readme = "README.md"
+packages = [{include = "mqttms", from = "src"}]
+include = [
+    "pyproject.toml",
+    "build.py",
+    "README.md"
 ]
 
-# Dependencies
-dependencies = [
-    "numpy",
-    "importlib",
-    "paho-mqtt",
-    "jsonschema",
-    "rfc3986",
-    "tomli; python_version < '3.11'"
-]
+# Runtime dependencies
+[tool.poetry.dependencies]
+python = ">=3.12"
+cython = ">=3.0"
+setuptools = ">=68.0.0"
+tomli = { version = "*", markers = "python_version < '3.11'" }
+numpy = "*"
+importlib = "*"
+paho-mqtt = "*"
+jsonschema = "*"
+types-jsonschema = "*"
+rfc3986 = "*"
 
-# Optional dependencies section for development tools
-[project.optional-dependencies]
-dev = [
-    "pytest>=8.0.0"
-]
+# Development dependencies
+[tool.poetry.group.dev.dependencies]
+mypy = ">=1.5.1"  # Static type checker
+pathlib = ">=1.0"
+build = "^1.2.2.post1"
 
-# Defining various URLs (these UTL are examples, please add other urls and/or remove redundant ones.
-[project.urls]
-homepage = "https://mqttms.example.com"  # Literal string for homepage URL
-repository = "http://github.com/jwalkerbg/i100004.git"  # Basic string for repository URL
-documentation = "https://i100004.readthedocs.io"
-bug_tracker = "https://github.com/jwalkerbg/i100004/issues"
-changelog = "https://github.com/jwalkerbg/i100004/releases"
-ci_pipeline = "https://github.com/jwalkerbg/mqi100004ttms/actions"
-funding = "https://github.com/sponsors/jwalkerbg"
-faq = "https://i100004.example.com/faq"  # Custom URL key for FAQ
+# Test dependencies
+[tool.poetry.group.test.dependencies]
+pytest = ">=8.0.0"
+pytest-cov = ">=6.0.0"
+pytest-mock = ">=3.0.0"
 
-# Example custom configuration for `setuptools`
-[tool.setuptools]
-package-dir = {"" = "src"}  # Single-quoted key for directory name
+# Definitions, specific for this project.
+[tool.build.config]
+extensions_path = "src/extensions"
+include_dirs = ["src/include"]
+libraries = []
+build_log = true
 
-[tool.setuptools.packages.find]
-where = ["src"]
+[build-system]
+requires = ["poetry-core", "setuptools", "Cython", "build"]
+build-backend = "poetry.core.masonry.api"
 
-# Entry point for the CLI script
-# [project.scripts]
-# mqttms = "mqttms.cli.app:main"
+[tool.poetry.build]
+generate-setup-file = true
+script = 'build.py'
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = "./src"
+pythonpath = "src"
