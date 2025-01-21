@@ -39,7 +39,7 @@ pytest-mock = ">=3.0.0"
 
 # Definitions, specific for this project.
 [tool.build.config]
-extensions_path = "src/extensions"
+extensions_path = "src/mqttms/extensions"
 include_dirs = ["src/include"]
 libraries = []
 build_log = true
