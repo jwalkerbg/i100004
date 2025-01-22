@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mqttms"
-version = "2.0.1"
+version = "2.0.2"
 description = "mqttms library to handle MQTT communications and MS protocol master (client) side"
 authors = ["Ivan Cenov <i_cenov@botevgrad.com>"]
 maintainers = ["Ivan Cenov <i_cenov@botevgrad.com>"]
@@ -39,7 +39,7 @@ pytest-mock = ">=3.0.0"
 
 # Definitions, specific for this project.
 [tool.build.config]
-extensions_path = "src/extensions"
+extensions_path = "src/mqttms/extensions"
 include_dirs = ["src/include"]
 libraries = []
 build_log = true
