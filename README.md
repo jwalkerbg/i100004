@@ -117,10 +117,10 @@ MQTTMS configuration is as follows (real example):
         "long_payload": 25
     },
     'ms': {
-        'client_mac': '1234567890AB',
-        'server_mac': '112233445566',
-        'cmd_topic': '@/server_mac/CMD/format',
-        'rsp_topic': '@/client_mac/RSP/format',
+        'client_uuid': 'e6f87d77-4216-4be1-ab83-b5fa6792b747',
+        'server_uuid': '4fdc0d1f-2421-4b5b-975b-9b4d0a08d712',
+        'cmd_topic': '@/server_uuid/CMD/format',
+        'rsp_topic': '@/server_uuid/RSP/format',
         'timeout': 5.0
     }
 }
@@ -132,9 +132,9 @@ Here, it is divided to two parts - `mqtt` for MQTT Handler and `ms` for MS Proto
 
 `mqtt.long_payload` is a constant used by the logger. If the payload is longer than this value the logger prints 'long payload' instead of the payload. This happens if `logging.verbose` is `False`.
 
-`ms.client_mac` is the MAC address of the device that runs this module with MS protocol host side. `ms.server_mac` is the MAC address of the slave device that receives command and returns respones to the client. These are parts of topics and subscriptions so as the host (client) and the slave (server) know each other.
+`ms.client_uuid` is the UUID of the device that runs this module with MS protocol host side. `ms.server_uuid` is the MAC address of the slave device that receives command and returns responses to the client. These are parts of topics and subscriptions so as the host (client) and the slave (server) know each other.
 
-`ms.cmd_topic` determines the format of topics of the commands. `ms.rsp_topic` determines the format of the responces. The slave (server) subscribes for `ms.cmd_topic` and the host (client) subscribes for `ms.rsp_topic`. `ms.client_mac` also travels as a field in command payloads (added automatically, application programmer do not need to worry about it).
+`ms.cmd_topic` determines the format of topics of the commands. `ms.rsp_topic` determines the format of the responses. The slave (server) subscribes for `ms.cmd_topic` and the host (client) subscribes for `ms.rsp_topic`. `ms.client_uuid` also travels as a field in command payloads (added automatically, application programmer do not need to worry about it).
 
 'ms.timeout` is the time in seconds for waiting responses of published commands.
 
@@ -208,13 +208,13 @@ Parameters:
             "ms": {
                 "type": "object",
                 "properties": {
-                    "client_mac": {"type": "string"},
-                    "server_mac": {"type": "string"},
+                    "client_uuid": {"type": "string"},
+                    "server_uuid": {"type": "string"},
                     "cmd_topic": {"type": "string"},
                     "rsp_topic": {"type": "string"},
                     "timeout": {"type": "number"}
                 },
-                "required": ["client_mac", "server_mac", "cmd_topic", "rsp_topic", "timeout"]
+                "required": ["client_uuid", "server_uuid", "cmd_topic", "rsp_topic", "timeout"]
             }
         },
         "required": ["mqtt", "ms"],
