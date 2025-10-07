@@ -34,13 +34,13 @@ class MQTTms:
                     "ms": {
                         "type": "object",
                         "properties": {
-                            "client_mac": {"type": "string"},
-                            "server_mac": {"type": "string"},
+                            "client_uuid": {"type": "string"},
+                            "server_uuid": {"type": "string"},
                             "cmd_topic": {"type": "string"},
                             "rsp_topic": {"type": "string"},
                             "timeout": {"type": "number"}
                         },
-                        "required": ["client_mac", "server_mac", "cmd_topic", "rsp_topic", "timeout"]
+                        "required": ["client_uuid", "server_uuid", "cmd_topic", "rsp_topic", "timeout"]
                     }
                 },
                 "required": ["mqtt", "ms"],
@@ -167,7 +167,7 @@ class MQTTms:
     def _subscribe(self, topic: str, timeout: float = 5.0) -> bool:
         self.mqtt_handler.subscribe(topic)
 
-        if self.mqtt_handler.subscription_estabilished.wait(timeout=self.config['mqttms']['mqtt'].get('timeout', timeout)):
+        if self.mqtt_handler.subscription_established.wait(timeout=self.config['mqttms']['mqtt'].get('timeout', timeout)):
             return True
         else:
             return False

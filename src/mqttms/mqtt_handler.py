@@ -25,7 +25,7 @@ class MQTTHandler:
         self.pending_messages = { }
 
         self.pending_subscriptions = { }
-        self.subscription_estabilished = threading.Event()
+        self.subscription_established = threading.Event()
         self.subscriptions_terminated = threading.Event()
 
         # queue for messages to be published
@@ -153,7 +153,7 @@ class MQTTHandler:
 
     def subscribe(self, topic: str) -> bool:
         # Clear the subscription event to signal that no acknowledgment has been received yet
-        self.subscription_estabilished.clear()
+        self.subscription_established.clear()
 
         # Attempt to subscribe to the specified topic
         result, mid = self.client.subscribe(topic=topic)
@@ -165,7 +165,7 @@ class MQTTHandler:
         logger.info(f"MQTT subscribing to topic: {topic}")
 
         # Wait for the subscription acknowledgment from the broker, with a timeout
-        waitres = self.subscription_estabilished.wait(self.configmqttms['mqtt']['timeout'])
+        waitres = self.subscription_established.wait(self.config['mqttms']['mqtt']['timeout'])
 
         if waitres:
             # If the acknowledgment was received in time, log success and return True
@@ -178,7 +178,7 @@ class MQTTHandler:
 
     def on_subscribe(self, client: mqtt.Client, userdata: object, mid: int, rc: int, properties: dict = None) -> None:
         # Signal that the subscription acknowledgment has been received
-        self.subscription_estabilished.set()
+        self.subscription_established.set()
 
         # Retrieve the topic associated with the message ID (mid)
         topic = self.pending_subscriptions.pop(mid, None)

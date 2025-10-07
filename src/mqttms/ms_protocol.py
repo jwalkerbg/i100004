@@ -17,8 +17,8 @@ class MSProtocol:
 
         Parameters:
         - mqtt_handler: An instance of the existing MQTTHandler class that manages the connection.
-        - master_mac: MAC address of the master device (this device).
-        - slave_mac: MAC address of the slave device (the server device).
+        - master_uuid: UUID of the master device (this device).
+        - slave_uuid: UUID of the slave device (the server device).
         - command_timeout: Timeout in seconds to wait for a response from the slave.
         """
         self.mqtt_handler = None
@@ -36,9 +36,9 @@ class MSProtocol:
                 },
                 "server": {
                     "type": "string",
-                    "minLength": 12,
-                    "maxLength": 12,
-                    "pattern": "^[0-9a-fA-F]+$"
+                    "minLength": 36,
+                    "maxLength": 36,
+                    "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
                 },
                 "response": {
                     "type": "string",
@@ -190,13 +190,13 @@ class MSProtocol:
         logger.info(f"MS command thread exited")
 
     def add_tracking_information(self,payload):
-        payload = re.sub('({)', r'\1' + f'"client":"{self.config["mqttms"]["ms"].get("client_mac","_")}",', payload)
+        payload = re.sub('({)', r'\1' + f'"client":"{self.config["mqttms"]["ms"].get("client_uuid","_")}",', payload)
         payload = re.sub('({)', r'\1' + f'"cid":{self.generate_random_cid()},', payload)
         return payload
 
     def construct_not_ok_response(self, cid: int, response: str):
         payload = {}
-        payload["server"] = f'{self.config["mqttms"]["ms"].get("server_mac", "_")}'
+        payload["server"] = f'{self.config["mqttms"]["ms"].get("server_uuid", "_")}'
         payload["cid"] = cid
         payload["response"] = response
         payload["data"] = ""
@@ -207,7 +207,7 @@ class MSProtocol:
         topic = self.construct_rsp_topic()
         self.mqtt_handler.subscribe(topic)
 
-        if self.mqtt_handler.subscription_estabilished.wait(timeout=self.config['mqttms']['mqtt'].get('timeout', timeout)):
+        if self.mqtt_handler.subscription_established.wait(timeout=self.config['mqttms']['mqtt'].get('timeout', timeout)):
             return True
         else:
             return False
@@ -216,12 +216,12 @@ class MSProtocol:
         self.mqtt_handler = handler
 
     def construct_cmd_topic(self, format='ASCIIHEX'):
-        topic = self.config['mqttms']['ms']['cmd_topic'].replace('server_mac',self.config['mqttms']['ms']['server_mac'])
+        topic = self.config['mqttms']['ms']['cmd_topic'].replace('server_uuid',self.config['mqttms']['ms']['server_uuid'])
         topic = topic.replace('format',format)
         return topic
 
     def construct_rsp_topic(self,format='ASCIIHEX'):
-        topic = self.config['mqttms']['ms']['rsp_topic'].replace('client_mac',self.config['mqttms']['ms']['client_mac'])
+        topic = self.config['mqttms']['ms']['rsp_topic'].replace('server_uuid',self.config['mqttms']['ms']['server_uuid'])
         topic = topic.replace('format',format)
         return topic
 
