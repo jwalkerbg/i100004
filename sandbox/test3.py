@@ -22,31 +22,31 @@ def match_mqtt_topic(mac_address: str, topic: str) -> bool:
     return bool(re.match(pattern, topic))
 
 
-def is_valid_mac_address(mac_address: str) -> bool:
+def is_valid_uuid(uuid: str) -> bool:
     """
-    Validates if the MAC address is correctly formatted.
+    Validates if the UUID is correctly formatted.
 
     Args:
-        mac_address (str): A 12-character hexadecimal MAC address.
+        uuid (str): A 12-character hexadecimal UUID.
 
     Returns:
-        bool: True if mac_address is valid, False otherwise.
+        bool: True if uuid is valid, False otherwise.
     """
-    # Regex for the 12-digit hexadecimal MAC address
-    mac_address_pattern = r"^[0-9A-Fa-f]{12}$"
+    # Regex for the 12-digit hexadecimal UUID
+    uuid_pattern = r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
 
-    # Check if mac_address matches the pattern
-    return bool(re.match(mac_address_pattern, mac_address))
+    # Check if uuid matches the pattern
+    return bool(re.match(uuid_pattern, uuid))
 
 
 # Test example
-mac_address = "1234567890AB"
-topic = "@/1234567890AB/RSP/JSOAN"
+uuid = "1234567890AB"
+topic = "@/1234567890AB/RSP/JSON"
 
-# First, validate mac_address
-if is_valid_mac_address(mac_address):
-    # If mac_address is valid, check if the topic matches the expected format
-    result = match_mqtt_topic(mac_address, topic)
+# First, validate uuid
+if is_valid_uuid(uuid):
+    # If uuid is valid, check if the topic matches the expected format
+    result = match_mqtt_topic(uuid, topic)
     print(f"Does the topic match? {result}")
 else:
-    print("Invalid MAC address.")
+    print("Invalid UUID.")

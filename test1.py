@@ -17,10 +17,10 @@ DEFAULT_CONFIG: dict = {
             "long_payload": 25
         },
         'ms': {
-            'client_mac': '1234567890AB',
-            'server_mac': '112233445566',
-            'cmd_topic': '@/server_mac/CMD/format',
-            'rsp_topic': '@/client_mac/RSP/format',
+            'client_uuid': 'e6f87d77-4216-4be1-ab83-b5fa6792b747',
+            'server_uuid': '4fdc0d1f-2421-4b5b-975b-9b4d0a08d712',
+            'cmd_topic': '@/server_uuid/CMD/format',
+            'rsp_topic': '@/server_uuid/RSP/format',
             'timeout': 5.0
         }
     }
@@ -64,13 +64,13 @@ CONFIG_SCHEMA: dict = {
                 "ms": {
                     "type": "object",
                     "properties": {
-                        "client_mac": {"type": "string"},
-                        "server_mac": {"type": "string"},
+                        "client_uuid": {"type": "string"},
+                        "server_uuid": {"type": "string"},
                         "cmd_topic": {"type": "string"},
                         "rsp_topic": {"type": "string"},
                         "timeout": {"type": "number"}
                     },
-                    "required": ["client_mac", "server_mac", "cmd_topic", "rsp_topic", "timeout"]
+                    "required": ["client_uuid", "server_uuid", "cmd_topic", "rsp_topic", "timeout"]
                 }
             },
             "required": ["mqtt", "ms"],
