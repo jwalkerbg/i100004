@@ -1,8 +1,7 @@
 # mqtt_dispatcher.py
 
-from typing import Dict, Tuple, Any
+from typing import Dict, Tuple
 from abc import ABC, abstractmethod
-from mqttms.logger_module import logger
 
 class AbstractMQTTDispatcher(ABC):
     def __init__(self, config: Dict):
