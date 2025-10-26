@@ -1,8 +1,7 @@
 # mqtt_dispatcher.py
 
 import re
-from typing import Dict, Tuple, Any
-from abc import ABC, abstractmethod
+from typing import Dict, Tuple
 from mqttms.abstract_dispatcher import AbstractMQTTDispatcher
 from mqttms.ms_protocol import MSProtocol
 from mqttms.logger_module import logger
@@ -50,7 +49,7 @@ class MQTTDispatcher(AbstractMQTTDispatcher):
         if not super().handle_message(message):
 
             if self.match_mqtt_topic_for_ms(message[0]):
-                logger.info(f"handle_message: -t '{message[0]}' -m '{message[1]}'")
+                logger.info("handle_message: -t '%s' -m '%s'", message[0], message[1])
                 self.ms_protocol.put_response(message)
                 return True
             # here more dispatcher options may be added if necessary
