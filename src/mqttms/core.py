@@ -1,7 +1,6 @@
 # mqttms/core.py
 
 from typing import Dict
-import json
 from jsonschema import validate, ValidationError
 from mqttms.mqtt_handler import MQTTHandler
 from mqttms.ms_protocol import MSProtocol
@@ -75,16 +74,16 @@ class MQTTms:
         try:
             validate(instance=self.config, schema=self.CONFIG_SCHEMA)
         except ValidationError as e:
-            logger.error(f"MQTTMS: Invalid confguration. Reason: {e}")
-            raise ConfigurationError(f"MQTTMS: Invalid confguration")
+            logger.error("MQTTMS: Invalid configuration. Reason: %s", e.message)
+            raise ConfigurationError("MQTTMS: Invalid configuration") from e
 
         if self.config['logging'].get('verbose', False):
-            logger.info(f"MQTTms Configuration: {self.config}")
+            logger.info("MQTTms Configuration: %s", self.config)
 
         # Create MQTTDispatcher object
         try:
             self.mqtt_dispatcher = None
-            if mqtt_dispatcher == None:
+            if mqtt_dispatcher is None:
                 self.mqtt_dispatcher = MQTTDispatcher(config=self.config)
             else:
                 self.mqtt_dispatcher = mqtt_dispatcher
@@ -94,43 +93,22 @@ class MQTTms:
         # Create MSProtocol object
         try:
             self.ms_protocol = MSProtocol(config=self.config)
-        except MemoryError as e:
-            logger.error(f"MQTTMS: Memory error: {e}")
-            raise e
-        except RuntimeError as e:
-            logger.error(f"MQTTMS: Runtime error: {e}")
-            raise e
-        except TypeError as e:
-            logger.error(f"MQTTMS: TypeError: {e}")
-            raise e
-        except ValueError as e:
-            logger.error(f"MQTTMS: ValueError: {e}")
+        except (MemoryError, RuntimeError, TypeError, ValueError) as e:
+            logger.error("MQTTMS: Exception occurred: %s", e, exc_info=True)
             raise e
         except Exception as e:
-            logger.error(f"MQTTMS: Exception: {e}")
+            logger.error("MQTTMS: Exception: %s", e)
             raise e
 
         # Create MQTThandler
         try:
             self.mqtt_handler = MQTTHandler(config=self.config)
-        except MemoryError as e:
-            logger.error(f"MQTTMS: Memory error: {e}")
-            self.ms_protocol.graceful_exit()
-            raise e
-        except RuntimeError as e:
-            logger.error(f"MQTTMS: Runtime error: {e}")
-            self.ms_protocol.graceful_exit()
-            raise e
-        except TypeError as e:
-            logger.error(f"MQTTMS: TypeError: {e}")
-            self.ms_protocol.graceful_exit()
-            raise e
-        except ValueError as e:
-            logger.error(f"MQTTMS: ValueError error: {e}")
+        except (MemoryError, RuntimeError, TypeError, ValueError) as e:
+            logger.error("MQTTMS: Exception occurred: %s", e, exc_info=True)
             self.ms_protocol.graceful_exit()
             raise e
         except Exception as e:
-            logger.error(f"MQTTMS: Exception: {e}")
+            logger.error("MQTTMS: Exception: %s", e)
             self.ms_protocol.graceful_exit()
             raise e
 
@@ -147,7 +125,7 @@ class MQTTms:
                 return False
             return True
         except Exception as e:
-            logger.error(f"MQTTMS: Cannot connect to MQTT broker: {e}")
+            logger.error("MQTTMS: Cannot connect to MQTT broker: %s", e)
             return False
 
     def subscribe(self, topic:str = None) -> bool:
@@ -157,20 +135,16 @@ class MQTTms:
             else:
                 res = self._subscribe(topic)
             if not res:
-                logger.warning(f"MQTTMS: Not successful subscription: {e}.")
+                logger.warning("MQTTMS: Not successful subscription")
                 return False
             return True
         except Exception as e:
-                logger.warning(f"MQTTMS: Not successful subscription: {e}.")
-                return False
+            logger.warning("MQTTMS: Not successful subscription: %s.", e)
+            return False
 
     def _subscribe(self, topic: str, timeout: float = 5.0) -> bool:
         self.mqtt_handler.subscribe(topic)
-
-        if self.mqtt_handler.subscription_established.wait(timeout=self.config['mqttms']['mqtt'].get('timeout', timeout)):
-            return True
-        else:
-            return False
+        return bool(self.mqtt_handler.subscription_established.wait(timeout=self.config['mqttms']['mqtt'].get('timeout', timeout)))
 
     def publish(self, topic: str, payload:str) -> None:
         self.mqtt_handler.publish_message(topic,payload)
