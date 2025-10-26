@@ -1,5 +1,5 @@
-import time
-import json
+# mqtt_handler.py
+
 import threading
 import queue
 from typing import Dict
@@ -71,7 +71,7 @@ class MQTTHandler:
     def connect(self) -> bool:
         host = self.configmqttms['mqtt']['host']
         port = self.configmqttms['mqtt']['port']
-        logger.info(f"MQTT connecting to MQTT broker at {host}:{port}...")
+        logger.info("MQTT connecting to MQTT broker at %s:%d...", host, port)
 
         try:
             # Clear the event to indicate that the connection is not established yet.
@@ -84,7 +84,7 @@ class MQTTHandler:
             self.client.loop_start()
         except Exception as e:
             # Log any connection failure.
-            logger.info(f"MQTT Connect: Failed to connect to MQTT Broker: {e}")
+            logger.info("MQTT Connect: Failed to connect to MQTT Broker: %s", e)
             return False
 
         # Wait for the connection to be established (set by the on_connect() callback) within the timeout period.
@@ -94,10 +94,9 @@ class MQTTHandler:
             # Connection was successfully established within the timeout.
             logger.info("MQTT connection established")
             return True
-        else:
-            # Connection was not established within the timeout.
-            logger.warning("No MQTT connection was established in time")
-            return False
+        # Connection was not established within the timeout.
+        logger.warning("No MQTT connection was established in time")
+        return False
 
     def on_connect(self, client: mqtt.Client, userdata: object, flags: dict, rc: int, properties: dict = None) -> None:
         if rc == 0:
@@ -108,7 +107,7 @@ class MQTTHandler:
             self.connection_established.set()
         else:
             # Connection failed with a return code (rc != 0)
-            logger.info(f"MQTT failed to connect, return code {rc}")
+            logger.info("MQTT failed to connect, return code %d", rc)
 
     def disconnect_and_exit(self) -> None:
         logger.info("MQTT initiating clean shutdown...")
@@ -118,9 +117,9 @@ class MQTTHandler:
         self.client.unsubscribe("#")
         waitres = self.subscriptions_terminated.wait(self.configmqttms['mqtt']['timeout'])
         if waitres:
-            logger.info(f"MQTT unsubscribed successfully")
+            logger.info("MQTT unsubscribed successfully")
         else:
-            logger.error(f"MQTT unsubscribing did finished in time")
+            logger.error("MQTT unsubscribing did not finish in time")
 
         # Step 2: Exit the publishing and receiving threads
         self.exit_threads()  # Signal the threads to stop and wait for them to finish
@@ -131,7 +130,7 @@ class MQTTHandler:
             logger.info("MQTT disconnected from MQTT broker.")
         except Exception as e:
             # Log any errors that occur during the disconnection process
-            logger.error(f"MQTT error while disconnecting from the broker: {e}")
+            logger.error("MQTT error while disconnecting from the broker: %s", e)
 
         logger.info("MQTT clean shutdown complete.")
 
@@ -141,7 +140,7 @@ class MQTTHandler:
             logger.info("Disconnected from MQTT broker successfully.")
         else:
             # If rc != 0, the disconnection was unintentional
-            logger.warning(f"Unexpected disconnection from MQTT broker. Reason code: {rc}")
+            logger.warning("Unexpected disconnection from MQTT broker. Reason code: %d", rc)
 
             # Attempt to reconnect to the broker
             try:
@@ -149,7 +148,7 @@ class MQTTHandler:
                 logger.info("Reconnected to MQTT broker.")
             except Exception as e:
                 # Log the failure to reconnect
-                logger.error(f"Failed to reconnect: {e}")
+                logger.error("Failed to reconnect: %s", e)
 
     def subscribe(self, topic: str) -> bool:
         # Clear the subscription event to signal that no acknowledgment has been received yet
@@ -162,18 +161,18 @@ class MQTTHandler:
         self.pending_subscriptions[mid] = topic
 
         # Log the subscription request
-        logger.info(f"MQTT subscribing to topic: {topic}")
+        logger.info("MQTT subscribing to topic: %s", topic)
 
         # Wait for the subscription acknowledgment from the broker, with a timeout
         waitres = self.subscription_established.wait(self.config['mqttms']['mqtt']['timeout'])
 
         if waitres:
             # If the acknowledgment was received in time, log success and return True
-            logger.info(f"MQTT subscription established")
+            logger.info("MQTT subscription established")
             return True
         else:
             # If the acknowledgment was not received in time, log a warning and return False
-            logger.warning(f"No MQTT subscription established in time")
+            logger.warning("No MQTT subscription established in time")
             return False
 
     def on_subscribe(self, client: mqtt.Client, userdata: object, mid: int, rc: int, properties: dict = None) -> None:
@@ -185,23 +184,23 @@ class MQTTHandler:
 
         # Log the subscription acknowledgment along with the topic, if available
         if topic:
-            logger.info(f"MQTT subscription to '{topic}' acknowledged")
+            logger.info("MQTT subscription to '%s' acknowledged", topic)
         else:
-            logger.info(f"MQTT subscription with mid '{mid}' acknowledged but no topic found in pending subscriptions")
+            logger.info("MQTT subscription with mid '%d' acknowledged but no topic found in pending subscriptions", mid)
 
     def on_unsubscribe(self, client: mqtt.Client, userdata: object, mid: int, reason_code_list: list, properties: dict = None) -> None:
         # Signal that the unsubscribe request has been acknowledged by the broker
         self.subscriptions_terminated.set()
 
         # Log the acknowledgment of the unsubscribe request for the given message ID (mid)
-        logger.info(f"MQTT unsubscribe acknowledgment for mid '{mid}' received")
+        logger.info("MQTT unsubscribe acknowledgment for mid '%d' received", mid)
 
     def on_publish(self, client: mqtt.Client, userdata: object, mid: int, reason_code: int, properties: dict = None) -> None:
         # Log successful message publication with its message ID and reason code
         if reason_code == 0:
-            logger.info(f"MQTT message with mid '{mid}' successfully published.")
+            logger.info("MQTT message with mid '%d' successfully published.", mid)
         else:
-            logger.warning(f"MQTT failed to publish MQTT message with mid '{mid}', reason code: {reason_code}")
+            logger.warning("MQTT failed to publish MQTT message with mid '%d', reason code: %d", mid, reason_code)
 
         # Optionally, remove the message ID from a tracking dictionary of pending messages (if applicable)
         if mid in self.pending_messages:
@@ -215,7 +214,7 @@ class MQTTHandler:
         logger.info(f"MQTT publish: -t '{topic}' -m '{'<long payload>' if not self.config['logging']['verbose'] and len(payload) > self.configmqttms['mqtt'].get('long_payload', 0) else payload}'")
 
     def publish_mqtt_message(self, client: mqtt.Client, q: queue.Queue) -> None:
-        logger.info(f"MQTT entered publishing thread")
+        logger.info("MQTT entered publishing thread")
 
         while True:
             # Wait for the next message in the publishing queue
@@ -236,12 +235,12 @@ class MQTTHandler:
                 mid = result.mid  # Get the message ID for tracking
                 self.pending_messages[mid] = {'topic': topic, 'payload': payload}  # Track the message
             else:
-                logger.warning(f"MQTT failed to publish message to topic '{topic}', return code: {result.rc}")
+                logger.warning("MQTT failed to publish message to topic '%s', return code: %d", topic, result.rc)
 
             # Wait for the message to be fully published (if QoS 1 or 2)
             result.wait_for_publish()
 
-        logger.info(f"MQTT exited publishing thread")
+        logger.info("MQTT exited publishing thread")
 
     def on_message(self, client: mqtt.Client, userdata: object, message: mqtt.MQTTMessage) -> None:
         # Decode the payload
@@ -256,7 +255,7 @@ class MQTTHandler:
         self.queue_rec.put((message.topic, payload))
 
     def receive_mqtt_message(self, client: mqtt.Client, q: queue.Queue) -> None:
-        logger.info(f"MQTT entered receiving thread")
+        logger.info("MQTT entered receiving thread")
 
         while True:
             # Wait for the next message in the queue
@@ -272,4 +271,4 @@ class MQTTHandler:
                 if hasattr(self.message_handler, 'handle_message') and callable(getattr(self.message_handler, 'handle_message')):
                     self.message_handler.handle_message(message)
 
-        logger.info(f"MQTT exited receiving thread")
+        logger.info("MQTT exited receiving thread")
