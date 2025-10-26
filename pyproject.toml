@@ -88,7 +88,7 @@ exclude = [
     "dist/.*",
     "venv/.*",
     ".venv/.*",
-    "src/pymodule/extensions/.*",
+    "src/mqttms/extensions/.*",
     "www/*"
 ]
 # --- Plugin support (Flask, Pydantic, etc.) ---
@@ -130,7 +130,7 @@ ignored-classes = ["ABC"]
 
 [tool.pylint.master]
 # Files/directories to ignore
-ignore = ["tests", "build", "venv", ".venv", "dist", "src/pymodule/extensions", "www"]
+ignore = ["tests", "build", "venv", ".venv", "dist", "src/mqttms/extensions", "www"]
 jobs = 0  # auto-detect CPU cores for parallel linting
 
 [tool.pylint.reports]
@@ -252,7 +252,7 @@ omit = [
     "*/__init__.py",
     "*/tests/*",
     "build.py",
-    "src/pymodule/extensions/*"
+    "src/mqttms/extensions/*"
 ]
 
 [tool.coverage.report]
