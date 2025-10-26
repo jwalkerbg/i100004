@@ -1,11 +1,11 @@
 import threading
 import re
 import json
-import jsonschema
-from jsonschema import validate, ValidationError, Draft7Validator, FormatChecker
 from typing import Dict
 import queue
 import random
+import jsonschema
+from jsonschema import Draft7Validator
 
 from mqttms.mqtt_handler import MQTTHandler
 from mqttms.logger_module import logger
@@ -26,7 +26,7 @@ class MSProtocol:
 
         self.valid_formats = ["BINARY", "ASCIIHEX", "ASCII", "JSON"]
         self.mapped_formats = ["base64", "asciihex", "ascii", "object"]
-        self.RESPONSE_SCHEMA = {
+        self.response_schema = {
             "type": "object",
             "properties": {
                 "cid": {
@@ -133,13 +133,13 @@ class MSProtocol:
         self.command_thread.start()
 
     def command_thread_runner(self, qcmd, qres):
-        logger.info(f"MS command thread started")
+        logger.info("MS command thread started")
 
         while True:
             # waiting for a command
             message = self.queue_cmd.get()
             # check for exit
-            if message == None:
+            if message is None:
                 break
 
             # sending message for publishing
@@ -158,7 +158,7 @@ class MSProtocol:
             except queue.Empty:
                 # create timeout answer here
                 self.construct_not_ok_response(cid,"TM")
-                logger.info(f"MS Timeout")
+                logger.info("MS Timeout")
                 self.response_received.set()
                 continue
 
@@ -170,8 +170,8 @@ class MSProtocol:
                 self.response_received.set()
                 continue
 
-            payload = self.add_dataType(topic, payload)
-            if payload == None:
+            payload = self.add_data_type(topic, payload)
+            if payload is None:
                 # construct BD response
                 self.construct_not_ok_response(cid,"BD")
                 self.response_received.set()
@@ -187,7 +187,7 @@ class MSProtocol:
             self.response = payload
             self.response_received.set()
 
-        logger.info(f"MS command thread exited")
+        logger.info("MS command thread exited")
 
     def add_tracking_information(self,payload):
         payload = re.sub('({)', r'\1' + f'"client":"{self.config["mqttms"]["ms"].get("client_uuid","_")}",', payload)
@@ -207,10 +207,7 @@ class MSProtocol:
         topic = self.construct_rsp_topic()
         self.mqtt_handler.subscribe(topic)
 
-        if self.mqtt_handler.subscription_established.wait(timeout=self.config['mqttms']['mqtt'].get('timeout', timeout)):
-            return True
-        else:
-            return False
+        return bool(self.mqtt_handler.subscription_established.wait(timeout=self.config['mqttms']['mqtt'].get('timeout', timeout)))
 
     def define_mqtt_handler(self,handler:MQTTHandler =None):
         self.mqtt_handler = handler
@@ -238,7 +235,7 @@ class MSProtocol:
     def generate_random_cid(self) -> int:
         return random.randint(0, 999)  # Generate a random, payload: dict
 
-    def add_dataType(self, topic: str, payload: dict) -> None:
+    def add_data_type(self, topic: str, payload: dict) -> None:
         # Split the topic by '/'
         topic_parts = topic.split('/')
 
@@ -256,20 +253,19 @@ class MSProtocol:
             index = self.valid_formats.index(format_part)
             payload["dataType"] = self.mapped_formats[index]
             return payload
-        else:
-            return None
+        return None
 
     def validate_json(self, data) -> bool:
-        validator = Draft7Validator(self.RESPONSE_SCHEMA)
+        validator = Draft7Validator(self.response_schema)
         try:
             validator.validate(instance=data)
             logger.info("JSON validation : OK")
             return True
         except jsonschema.exceptions.ValidationError as err:
-            logger.info(f"JSON data is invalid: {err.message}")
+            logger.info("JSON data is invalid: %s", err.message)
             return False
 
     def graceful_exit(self) -> None:
         self.put_command(None)
         self.command_thread.join()
-        logger.info(f"MS: graceful exited")
+        logger.info("MS: graceful exited")
