@@ -48,9 +48,24 @@ class MQTTms:
             "logging": {
                 "type": "object",
                 "properties": {
-                    "verbose": { "type": "boolean" }
+                    "verbose": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 6
+                    },
+                    "log_prefix": {
+                        "type": "boolean"
+                    },
+                    "use_color": {
+                        "type": "boolean"
+                    },
+                    "use_string_handler": {
+                        "type": "boolean"
+                    },
+                    "version_option": {
+                        "type": "boolean"
+                    }
                 },
-                "required": ["verbose"],
                 "additionalProperties": False
             }
         },
