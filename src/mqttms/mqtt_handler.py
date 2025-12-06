@@ -5,7 +5,10 @@ import queue
 from typing import Dict
 import paho.mqtt.client as mqtt
 from mqttms.abstract_dispatcher import AbstractMQTTDispatcher
-from mqttms.logger_module import logger
+
+from mqttms.logger import get_app_logger
+
+logger = get_app_logger(__name__)
 
 class MQTTHandler:
     def __init__(self, config:Dict, message_handler:AbstractMQTTDispatcher=None):

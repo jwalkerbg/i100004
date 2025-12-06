@@ -8,7 +8,10 @@ import jsonschema
 from jsonschema import Draft7Validator
 
 from mqttms.mqtt_handler import MQTTHandler
-from mqttms.logger_module import logger
+
+from mqttms.logger import get_app_logger
+
+logger = get_app_logger(__name__)
 
 class MSProtocol:
     def __init__(self, config:Dict):

@@ -4,9 +4,12 @@ from typing import Dict
 from jsonschema import validate, ValidationError
 from mqttms.mqtt_handler import MQTTHandler
 from mqttms.ms_protocol import MSProtocol
-from mqttms.logger_module import logger
 from mqttms.mqtt_dispatcher import MQTTDispatcher
 from mqttms.conferror import ConfigurationError
+
+from mqttms.logger import get_app_logger
+
+logger = get_app_logger(__name__)
 
 class MQTTms:
 
