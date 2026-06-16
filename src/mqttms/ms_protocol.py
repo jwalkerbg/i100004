@@ -14,7 +14,7 @@ from mqttms.logger import get_app_logger
 logger = get_app_logger(__name__)
 
 class MSProtocol:
-    def __init__(self, config:Dict):
+    def __init__(self, config:Dict, process_unsolicited_message=None):
         """
         Initialize the command protocol with MQTTHandler and device MAC addresses.
 
@@ -23,9 +23,11 @@ class MSProtocol:
         - master_uuid: UUID of the master device (this device).
         - slave_uuid: UUID of the slave device (the server device).
         - command_timeout: Timeout in seconds to wait for a response from the slave.
+        - process_unsolicited_message: A callback function to process unsolicited messages.
         """
         self.mqtt_handler = None
         self.config = config
+        self.process_unsolicited_message = process_unsolicited_message
 
         self.valid_formats = ["BINARY", "ASCIIHEX", "ASCII", "JSON"]
         self.mapped_formats = ["base64", "asciihex", "ascii", "object"]
@@ -119,11 +121,42 @@ class MSProtocol:
                 }
             }
         }
+        self.unsolicited_schema = {
+            "type": "object",
+            "properties": {
+                "ver": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "ts": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "severity": {
+                    "type": "string"
+                },
+                "src": {
+                    "type": "string"
+                },
+                "data": {
+                    "type": "object"
+                }
+            },
+            "required": ["ver", "type", "ts", "id", "severity", "src", "data"],
+            "additionalProperties": False
+        }
 
-        # quque for commands
+        # queue for commands
         self.queue_cmd = queue.Queue()
         # queue for responses
         self.queue_res = queue.Queue()
+        # queue for unsolicited messages
+        self.queue_unsolicited = queue.Queue()
 
         # Synchronization for waiting for responses
         self.response_received = threading.Event()
@@ -134,6 +167,13 @@ class MSProtocol:
         self.command_thread = None
         self.command_thread = threading.Thread(target=self.command_thread_runner, args=(self.queue_cmd,self.queue_res))
         self.command_thread.start()
+
+        self.unsolicited_thread = None
+        unsolicited_thread = threading.Thread(target=self.unsolicited_thread_runner, args=(self.queue_unsolicited,))
+        unsolicited_thread.start()
+
+    def set_unsolicited_message_processor(self, callback):
+        self.process_unsolicited_message = callback
 
     def command_thread_runner(self, qcmd, qres):
         logger.info("MS command thread started")
@@ -192,6 +232,37 @@ class MSProtocol:
 
         logger.info("MS command thread exited")
 
+    def unsolicited_thread_runner(self, qunsolicited):
+        logger.info("MS unsolicited thread started")
+
+        while True:
+            # waiting for an unsolicited message
+            message = self.queue_unsolicited.get()
+            # check for exit
+            if message is None:
+                break
+
+            topic, payload = message
+
+            try:
+                jpayload = json.loads(payload)
+            except json.JSONDecodeError as e:
+                logger.warning("Received invalid JSON in unsolicited message: %s", e)
+                continue
+
+            validator = Draft7Validator(self.unsolicited_schema)
+            try:
+                validator.validate(instance=jpayload)
+                logger.info("Received valid unsolicited message: %s", jpayload)
+                # Here you can add code to process the valid unsolicited message as needed
+                # here we can call a callback or put the message in another queue for processing
+                if self.process_unsolicited_message:
+                    self.process_unsolicited_message(jpayload)
+            except jsonschema.exceptions.ValidationError as err:
+                logger.warning("Received invalid unsolicited message: %s", err.message)
+
+        logger.info("MS unsolicited thread exited")
+
     def add_tracking_information(self,payload):
         payload = re.sub('({)', r'\1' + f'"client":"{self.config["mqttms"]["ms"].get("client_uuid","_")}",', payload)
         payload = re.sub('({)', r'\1' + f'"cid":{self.generate_random_cid()},', payload)
@@ -206,9 +277,15 @@ class MSProtocol:
         payload["dataType"] = "asciihex"
         self.response = payload
 
-    def subscribe(self, timeout: float = 5.0):
-        topic = self.construct_rsp_topic()
-        self.mqtt_handler.subscribe(topic)
+    def subscribe_all(self, timeout: float = 5.0):
+        for topic in self.config['mqttms']['ms'].get('subs_topics', []):
+            logger.info("Subscribing to topic: %s with format: %s", topic["topic"], topic["format"])
+            self.subscribe(topic["topic"], topic["format"], timeout)
+
+    def subscribe(self, topic: str, format: str, timeout: float = 5.0):
+        t = topic.replace('server_uuid',self.config['mqttms']['ms']['server_uuid'])
+        t = t.replace('format',format)
+        self.mqtt_handler.subscribe(t)
 
         return bool(self.mqtt_handler.subscription_established.wait(timeout=self.config['mqttms']['mqtt'].get('timeout', timeout)))
 
@@ -217,11 +294,6 @@ class MSProtocol:
 
     def construct_cmd_topic(self, format='ASCIIHEX'):
         topic = self.config['mqttms']['ms']['cmd_topic'].replace('server_uuid',self.config['mqttms']['ms']['server_uuid'])
-        topic = topic.replace('format',format)
-        return topic
-
-    def construct_rsp_topic(self,format='ASCIIHEX'):
-        topic = self.config['mqttms']['ms']['rsp_topic'].replace('server_uuid',self.config['mqttms']['ms']['server_uuid'])
         topic = topic.replace('format',format)
         return topic
 
@@ -234,6 +306,12 @@ class MSProtocol:
     def get_response(self):
         self.response_received.wait()
         return self.response
+
+    def put_unsolicited(self, message):
+        self.queue_unsolicited.put(message)
+
+    def get_unsolicited(self):
+        return self.queue_unsolicited.get()
 
     def generate_random_cid(self) -> int:
         return random.randint(0, 999)  # Generate a random, payload: dict

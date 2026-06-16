@@ -39,10 +39,28 @@ class MQTTms:
                             "client_uuid": {"type": "string"},
                             "server_uuid": {"type": "string"},
                             "cmd_topic": {"type": "string"},
-                            "rsp_topic": {"type": "string"},
-                            "timeout": {"type": "number"}
+                            "subs_topics": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "topic": {
+                                            "type": "string"
+                                        },
+                                        "format": {
+                                            "type": "string",
+                                            "enum": ["BINARY", "ASCIIHEX", "ASCII", "JSON" ]
+                                        }
+                                    },
+                                    "required": ["topic", "format"],
+                                    "additionalProperties": False
+                                },
+                                "minItems": 1,
+                                "uniqueItems": True
+                            },
+                            "timeout": {"type": "number", "minimum": 0.1, "maximum": 60.0}
                         },
-                        "required": ["client_uuid", "server_uuid", "cmd_topic", "rsp_topic", "timeout"]
+                        "required": ["client_uuid", "server_uuid", "cmd_topic", "subs_topics", "timeout"]
                     }
                 },
                 "required": ["mqtt", "ms"],
@@ -152,6 +170,17 @@ class MQTTms:
                 res = self.ms_protocol.subscribe()
             else:
                 res = self._subscribe(topic)
+            if not res:
+                logger.warning("MQTTMS: Not successful subscription")
+                return False
+            return True
+        except Exception as e:
+            logger.warning("MQTTMS: Not successful subscription: %s.", e)
+            return False
+
+    def subscribe_all(self) -> bool:
+        try:
+            res = self.ms_protocol.subscribe_all()
             if not res:
                 logger.warning("MQTTMS: Not successful subscription")
                 return False

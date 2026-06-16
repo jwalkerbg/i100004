@@ -38,6 +38,28 @@ class MQTTDispatcher(AbstractMQTTDispatcher):
         # Check if the given topic matches the regex pattern
         return bool(re.match(pattern, topic))
 
+    def match_mqtt_topic_for_usl(self, topic: str) -> bool:
+        """
+        Matches an MQTT topic with the following format:
+        @/<mac_address>/USL/<format>
+
+        where mac_address is a 12-digit hexadecimal string and format is one of:
+        'ASCII', 'ASCIIHEX', 'JSON', 'BINARY'.
+
+        Args:
+            mac_address (str): A 12-character hexadecimal MAC address.
+            topic (str): The MQTT topic to validate.
+            format (str): The expected format for the topic.
+
+        Returns:
+            bool: True if the topic matches the expected format, False otherwise.
+        """
+        # Define the regex pattern for the MQTT topic, with valid formats embedded
+        pattern = fr"^@/{self.config['mqttms']['ms'].get('server_uuid', '_')}/USL/(ASCII|ASCIIHEX|JSON|BINARY)$"
+
+        # Check if the given topic matches the regex pattern
+        return bool(re.match(pattern, topic))
+
     def handle_message(self, message: Tuple[str, str]) -> bool:
         """
         Handles an incoming MQTT message, processes the topic, and dispatches based on matching protocols.
@@ -55,6 +77,10 @@ class MQTTDispatcher(AbstractMQTTDispatcher):
                 logger.info("handle_message: -t '%s' -m '%s'", message[0], message[1])
                 self.ms_protocol.put_response(message)
                 return True
-            # here more dispatcher options may be added if necessary
+
+            if self.match_mqtt_topic_for_usl(message[0]):
+                logger.info("handle_message: -t '%s' -m '%s'", message[0], message[1])
+                self.ms_protocol.put_unsolicited(message)
+                return True
 
         return False
