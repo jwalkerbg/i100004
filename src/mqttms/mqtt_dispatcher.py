@@ -17,7 +17,7 @@ class MQTTDispatcher(AbstractMQTTDispatcher):
     def define_ms_protocol(self, protocol:MSProtocol = None) -> None:
         self.ms_protocol = protocol
 
-    def match_mqtt_topic_for_ms(self, topic: str) -> bool:
+    def match_mqtt_topic_for_rsp(self, topic: str) -> bool:
         """
         Matches an MQTT topic with the following format:
         @/<mac_address>/RSP/<format>
@@ -51,7 +51,7 @@ class MQTTDispatcher(AbstractMQTTDispatcher):
 
         if not super().handle_message(message):
 
-            if self.match_mqtt_topic_for_ms(message[0]):
+            if self.match_mqtt_topic_for_rsp(message[0]):
                 logger.info("handle_message: -t '%s' -m '%s'", message[0], message[1])
                 self.ms_protocol.put_response(message)
                 return True
