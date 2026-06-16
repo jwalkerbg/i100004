@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mqttms"
-version = "3.4.1"
+version = "3.5.1.dev1"
 description = "mqttms library to handle MQTT communications and MS protocol master (client) side"
 license = "MIT"
 authors = ["Ivan Cenov <i_cenov@botevgrad.com>"]
@@ -25,8 +25,8 @@ exclude = [
 # Make sure to configure authentication if your pypi server requires it.
 # See Poetry documentation for more details: https://python-poetry.org/docs/repositories/#using-private-repositories
 [[tool.poetry.source]]
-name = "okto7"
-url = "http://pypi.okto7.com/simple"
+name = "imc.bg"
+url = "http://pypi.imc.bg/simple"
 priority = "primary"
 
 # Runtime dependencies
@@ -34,12 +34,12 @@ priority = "primary"
 python = ">=3.12"
 cython = ">=3.0"
 setuptools = ">=68.0.0"
-tomli = { version = "*", markers = "python_version < '3.11'" }
-numpy = ">=2.2.0"
+tomli = { version = ">=2.4.0", markers = "python_version < '3.11'" }
+numpy = ">=2.4.0"
 importlib = ">=1.0.4"
 paho-mqtt = ">=2.1.0"
-jsonschema = ">=4.25.0"
-types-jsonschema = ">=4.23.0"
+jsonschema = ">=4.26.0"
+types-jsonschema = ">=4.26.0"
 rfc3986 = ">=2.0.0"
 colorama = ">=0.4.6"
 
