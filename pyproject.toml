@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mqttms"
-version = "3.5.1.dev1"
+version = "3.5.1"
 description = "mqttms library to handle MQTT communications and MS protocol master (client) side"
 license = "MIT"
 authors = ["Ivan Cenov <i_cenov@botevgrad.com>"]
