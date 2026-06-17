@@ -169,8 +169,8 @@ class MSProtocol:
         self.command_thread.start()
 
         self.unsolicited_thread = None
-        unsolicited_thread = threading.Thread(target=self.unsolicited_thread_runner, args=(self.queue_unsolicited,))
-        unsolicited_thread.start()
+        self.unsolicited_thread = threading.Thread(target=self.unsolicited_thread_runner, args=(self.queue_unsolicited,))
+        self.unsolicited_thread.start()
 
     def set_unsolicited_message_processor(self, callback):
         self.process_unsolicited_message = callback
@@ -280,7 +280,11 @@ class MSProtocol:
     def subscribe_all(self, timeout: float = 5.0):
         for topic in self.config['mqttms']['ms'].get('subs_topics', []):
             logger.info("Subscribing to topic: %s with format: %s", topic["topic"], topic["format"])
-            self.subscribe(topic["topic"], topic["format"], timeout)
+            rtn = self.subscribe(topic["topic"], topic["format"], timeout)
+            if not rtn:
+                logger.warning("Subscription to topic '%s' with format '%s' failed.", topic["topic"], topic["format"])
+                return False
+        return True
 
     def subscribe(self, topic: str, format: str, timeout: float = 5.0):
         t = topic.replace('server_uuid',self.config['mqttms']['ms']['server_uuid'])
@@ -349,4 +353,6 @@ class MSProtocol:
     def graceful_exit(self) -> None:
         self.put_command(None)
         self.command_thread.join()
+        self.put_unsolicited(None)
+        self.unsolicited_thread.join()
         logger.info("MS: graceful exited")
