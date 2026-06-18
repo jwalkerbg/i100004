@@ -19,10 +19,7 @@ class MSProtocol:
         Initialize the command protocol with MQTTHandler and device MAC addresses.
 
         Parameters:
-        - mqtt_handler: An instance of the existing MQTTHandler class that manages the connection.
-        - master_uuid: UUID of the master device (this device).
-        - slave_uuid: UUID of the slave device (the server device).
-        - command_timeout: Timeout in seconds to wait for a response from the slave.
+        - config: configuration that comes from main application
         - process_unsolicited_message: A callback function to process unsolicited messages.
         """
         self.mqtt_handler = None
